@@ -1,5 +1,7 @@
+import { Alu } from "./Alu";
+import { isOn } from "./Bits";
 import { Clock } from "./Clock";
-import { Computer } from "./Computer";
+import { InstructionRegister } from "./InstructionRegister";
 
 const DISPLAY = 32;
 const HLT = 31;
@@ -52,7 +54,6 @@ export class Controller {
   ctrl_word = 0;
   stage = 0;
   stage_rst = false;
-  constructor(public computer: Computer) {}
 
   setControl(bit: number | number[], value = 1) {
     const [hi, lo] = Array.isArray(bit) ? bit : [bit, bit];
@@ -62,7 +63,12 @@ export class Controller {
     }
   }
 
-  always(clk: Clock, rst: boolean, opcode: number, flags: number) {
+  getControl(bit: number | number[]) {
+    const [hi, lo] = Array.isArray(bit) ? bit : [bit, bit];
+    return (this.ctrl_word >> lo) & ((1 << (hi - lo)) - 1);
+  }
+
+  always(clk: Clock, rst: number, ir: InstructionRegister, alu: Alu) {
     // always @(negedge clk, posedge rst)
     if (clk.isTock) {
       if (rst) {
@@ -86,7 +92,67 @@ export class Controller {
     }
   }
 
+  get display() {
+    return isOn(this.ctrl_word, DISPLAY);
+  }
   get hlt() {
     return isOn(this.ctrl_word, HLT);
+  }
+  get alu_cs() {
+    return isOn(this.ctrl_word, ALU_CS);
+  }
+  get alu_flags_we() {
+    return isOn(this.ctrl_word, ALU_FLAGS_WE);
+  }
+  get alu_a_we() {
+    return isOn(this.ctrl_word, ALU_A_WE);
+  }
+  get alu_a_store() {
+    return isOn(this.ctrl_word, ALU_A_STORE);
+  }
+  get alu_a_restore() {
+    return isOn(this.ctrl_word, ALU_A_RESTORE);
+  }
+  get alu_tmp_we() {
+    return isOn(this.ctrl_word, ALU_TMP_WE);
+  }
+  get alu_op() {
+    return isOn(this.ctrl_word, ALU_OP4);
+  }
+  get alu_op0() {
+    return isOn(this.ctrl_word, ALU_OP0);
+  }
+  get alu_oe() {
+    return isOn(this.ctrl_word, ALU_OE);
+  }
+  get alu_flags_oe() {
+    return isOn(this.ctrl_word, ALU_FLAGS_OE);
+  }
+  get reg_rd_sel() {
+    return this.getControl([REG_RD_SEL4, REG_RD_SEL0]);
+  }
+  get reg_wr_sel() {
+    return this.getControl([REG_WR_SEL4, REG_WR_SEL0]);
+  }
+  get reg_ext() {
+    return this.getControl([REG_EXT1, REG_EXT0]);
+  }
+  get reg_oe() {
+    return isOn(this.ctrl_word, REG_OE);
+  }
+  get reg_we() {
+    return isOn(this.ctrl_word, REG_WE);
+  }
+  get mem_we() {
+    return isOn(this.ctrl_word, MEM_WE);
+  }
+  get mem_mar_we() {
+    return isOn(this.ctrl_word, MEM_MAR_WE);
+  }
+  get mem_oe() {
+    return isOn(this.ctrl_word, MEM_OE);
+  }
+  get ir_we() {
+    return isOn(this.ctrl_word, IR_WE);
   }
 }
