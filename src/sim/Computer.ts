@@ -20,7 +20,7 @@ export class Computer {
   constructor() {
     this.mem.load([
       // lxi sp, $f0
-      0x31, 0xf0, 0x00,
+      // 0x31, 0xf0, 0x00,
       // mvi a, $1
       0x3e, 0x01,
       // mvi b, $0
@@ -52,13 +52,25 @@ export class Computer {
     //   REG_EXT = INC
 
     // always @(*)
-    this.regs.always(this.clk, this.rst, this.ctrl, this.bus); // select reg
-    this.mem.always(this.clk, this.rst, this.ctrl, this.bus); // bus <=> mem[mar]
-    this.ir.always(this.clk, this.rst, this.ctrl, this.bus); // bus -> ir
-    this.alu.always(this.clk, this.rst, this.ctrl, this.bus);
-    this.bus.always(this.ctrl, this.alu, this.mem, this.regs);
 
-    // fetch and decode
+    // write bus to reg if reg_we on tick
+    // store selected reg to regs.out
+    this.regs.always(this.clk, this.rst, this.ctrl, this.bus); // select reg
+
+    // write bus to mar (if mem_mar_we) or ram[mar] (if mem_we) on tick
+    // store ram[mar] in mem.out
+    this.mem.always(this.clk, this.rst, this.ctrl, this.bus); // bus <=> mem[mar]
+
+    // write bus to ir.out on tick if ir_we
+    this.ir.always(this.clk, this.rst, this.ctrl, this.bus); // bus -> ir
+
+    // write bus to acc or calculate acc on tick
+    // update flags on tock
+    // store acc to alu.out
+    this.alu.always(this.clk, this.rst, this.ctrl, this.bus);
+
+    // copy alu.out or mem.out or regs.out to bus
+    this.bus.always(this.ctrl, this.alu, this.mem, this.regs);
 
     this.clk.always(this.ctrl);
   }

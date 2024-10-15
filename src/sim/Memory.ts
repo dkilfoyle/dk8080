@@ -17,6 +17,7 @@ export class Memory {
     if (rst) {
       this.mar = 0;
     } else if (clk.isTick) {
+      console.assert(!(ctrl.mem_mar_we && ctrl.mem_we), "%o", { ctrl, msg: "Memory.always has both mar_we and we" });
       if (ctrl.mem_mar_we) {
         this.mar = bus.value;
       }

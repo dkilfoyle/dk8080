@@ -1,5 +1,5 @@
 import { Alu } from "./Alu";
-import { isOn } from "./Bits";
+import { getBits, isOn, setBits } from "./Bits";
 import { Clock } from "./Clock";
 import { InstructionRegister } from "./InstructionRegister";
 
@@ -53,19 +53,14 @@ const REG_SP_P = 0b01011;
 export class Controller {
   ctrl_word = 0;
   stage = 0;
-  stage_rst = false;
+  stage_rst = 0;
 
-  setControl(bit: number | number[], value = 1) {
-    const [hi, lo] = Array.isArray(bit) ? bit : [bit, bit];
-    for (let i = lo; i <= hi; i++) {
-      if (isOn(value, i - lo)) this.ctrl_word |= 1 << i;
-      else this.ctrl_word &= ~(1 << i);
-    }
+  setControl(bits: number | number[], value = 1) {
+    this.ctrl_word = setBits(this.ctrl_word, bits, value);
   }
 
-  getControl(bit: number | number[]) {
-    const [hi, lo] = Array.isArray(bit) ? bit : [bit, bit];
-    return (this.ctrl_word >> lo) & ((1 << (hi - lo)) - 1);
+  getControl(bits: number | number[]) {
+    return getBits(this.ctrl_word, bits);
   }
 
   always(clk: Clock, rst: number, ir: InstructionRegister, alu: Alu) {
@@ -81,7 +76,7 @@ export class Controller {
 
     // always @(*)
     this.ctrl_word = 0;
-    this.stage_rst = false;
+    this.stage_rst = 0;
 
     // fetch TState 0
     if (this.stage == 0) {
@@ -89,6 +84,41 @@ export class Controller {
       this.setControl([REG_RD_SEL4, REG_RD_SEL0], REG_PC); // read from registers[PC]
       this.setControl(REG_OE); // output selected register to bus
       this.setControl(MEM_MAR_WE); // read value on bus into MAR
+    } else if (this.stage == 1) {
+      // output ram[mar=PC] to bus and read bus into ir
+      this.setControl(MEM_OE);
+      this.setControl(IR_WE);
+    } else if (this.stage == 2) {
+      this.setControl([REG_WR_SEL4, REG_WR_SEL0], REG_PC);
+      this.setControl([REG_EXT1, REG_EXT0], REG_INC);
+    } else {
+      switch (ir.out) {
+        case 0x0e:
+        case 0x1e:
+        case 0x2e:
+        case 0x3e:
+        case 0x06:
+        case 0x16:
+        case 0x26:
+          // MVI Rd, d8
+          if (this.stage == 3) {
+            this.setControl([REG_RD_SEL4, REG_RD_SEL0], REG_PC);
+            this.setControl(REG_OE);
+            this.setControl(MEM_MAR_WE);
+          } else if (this.stage == 4) {
+            if (getBits(ir.out, [5, 3]) == 0b111) {
+              this.setControl(ALU_A_WE);
+            } else {
+              this.setControl([REG_WR_SEL4, REG_WR_SEL0], getBits(ir.out, [5, 3]));
+              this.setControl(REG_WE);
+            }
+            this.setControl(MEM_OE);
+          } else if (this.stage == 5) {
+            this.setControl([REG_WR_SEL4, REG_WR_SEL0], REG_PC);
+            this.setControl([REG_EXT1, REG_EXT0], REG_INC);
+            this.stage_rst = 1;
+          }
+      }
     }
   }
 
@@ -117,10 +147,7 @@ export class Controller {
     return isOn(this.ctrl_word, ALU_TMP_WE);
   }
   get alu_op() {
-    return isOn(this.ctrl_word, ALU_OP4);
-  }
-  get alu_op0() {
-    return isOn(this.ctrl_word, ALU_OP0);
+    return this.getControl([ALU_OP4, ALU_OP0]);
   }
   get alu_oe() {
     return isOn(this.ctrl_word, ALU_OE);
