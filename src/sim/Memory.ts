@@ -20,13 +20,16 @@ export class Memory {
       console.assert(!(ctrl.mem_mar_we && ctrl.mem_we), "%o", { ctrl, msg: "Memory.always has both mar_we and we" });
       if (ctrl.mem_mar_we) {
         this.mar = bus.value;
+        console.log(`mem.tick write bus => mar = ${bus.value}`);
       }
       if (ctrl.mem_we) {
         this.ram[this.mar] = bus.value;
+        console.log(`mem.tick write bus => ram[${this.mar}] = ${bus.value}`);
       }
     }
 
     // always @(*)
     this.out = this.ram[this.mar];
+    console.log(`mem.* mem.out = ram[mar=${this.mar}] = ${this.ram[this.mar]}`);
   }
 }

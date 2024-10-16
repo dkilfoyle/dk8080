@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/sim/alu.ts","./src/sim/bits.ts","./src/sim/bus.ts","./src/sim/clock.ts","./src/sim/computer.ts","./src/sim/controller.ts","./src/sim/instructionregister.ts","./src/sim/memory.ts","./src/sim/registers.test.ts","./src/sim/registers.ts","./src/sim/main.ts"],"version":"5.6.3"}

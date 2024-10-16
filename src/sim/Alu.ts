@@ -123,45 +123,45 @@ export class Alu {
         if (ctrl.alu_tmp_we) {
           this.tmp = bus.value;
         }
-      } else if (clk.isTock) {
-        // update flags
-        if (ctrl.alu_flags_we) {
-          this.flg = bus.value;
-        } else if (ctrl.alu_cs) {
-          switch (ctrl.alu_op) {
-            case ALUOP.ADD:
-            case ALUOP.ADC:
-            case ALUOP.SUB:
-            case ALUOP.SBB:
-            case ALUOP.ANA:
-            case ALUOP.XRA:
-            case ALUOP.ORA:
-              this.flg = combineBits([this.flg_c, this.flg_z, this.flg_s, this.flg_p]);
-              break;
-            case ALUOP.CMP:
-              this.flg = setBitTo(this.flg, ALUFLG.Z, this.act == 0 ? 1 : 0);
-              break;
-            case ALUOP.INR:
-            case ALUOP.DCR:
-              this.flg = setBitTo(this.flg, ALUFLG.Z, this.flg_z);
-              this.flg = setBitTo(this.flg, ALUFLG.S, this.flg_s);
-              this.flg = setBitTo(this.flg, ALUFLG.P, this.flg_p);
-              break;
-            case ALUOP.RLC:
-            case ALUOP.RRC:
-            case ALUOP.RAL:
-            case ALUOP.RAR:
-            case ALUOP.STC:
-            case ALUOP.CMC:
-              this.flg = setBitTo(this.flg, ALUFLG.C, this.flg_c);
-              break;
-          }
+      }
+    } else if (clk.isTock) {
+      // update flags
+      if (ctrl.alu_flags_we) {
+        this.flg = bus.value;
+      } else if (ctrl.alu_cs) {
+        switch (ctrl.alu_op) {
+          case ALUOP.ADD:
+          case ALUOP.ADC:
+          case ALUOP.SUB:
+          case ALUOP.SBB:
+          case ALUOP.ANA:
+          case ALUOP.XRA:
+          case ALUOP.ORA:
+            this.flg = combineBits([this.flg_c, this.flg_z, this.flg_s, this.flg_p]);
+            break;
+          case ALUOP.CMP:
+            this.flg = setBitTo(this.flg, ALUFLG.Z, this.act == 0 ? 1 : 0);
+            break;
+          case ALUOP.INR:
+          case ALUOP.DCR:
+            this.flg = setBitTo(this.flg, ALUFLG.Z, this.flg_z);
+            this.flg = setBitTo(this.flg, ALUFLG.S, this.flg_s);
+            this.flg = setBitTo(this.flg, ALUFLG.P, this.flg_p);
+            break;
+          case ALUOP.RLC:
+          case ALUOP.RRC:
+          case ALUOP.RAL:
+          case ALUOP.RAR:
+          case ALUOP.STC:
+          case ALUOP.CMC:
+            this.flg = setBitTo(this.flg, ALUFLG.C, this.flg_c);
+            break;
         }
-      } else console.error("clk must be tick or tock");
+      }
+    } else console.error(`clk must be tick or tock`);
 
-      this.out = this.acc;
-      this.flags = this.flg;
-    }
+    this.out = this.acc;
+    this.flags = this.flg;
   }
   get flg_c() {
     return this.carry == 1 ? 1 : 0;

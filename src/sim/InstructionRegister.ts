@@ -10,6 +10,7 @@ export class InstructionRegister {
     } else if (clk.isTick) {
       if (ctrl.ir_we) {
         this.out = bus.value;
+        console.log(`ir.tick bus => ir.out = ${this.out}`);
       }
     }
   }

@@ -29,26 +29,26 @@ const MEM_OE = 1;
 const IR_WE = 0;
 
 const REG_INC = 0b01;
-const REG_DEC = 0b10;
-const REG_INC2 = 0b11;
-const REG_BC = 0b10000;
-const REG_BC_B = 0b00000;
-const REG_BC_C = 0b00001;
-const REG_DE = 0b10010;
-const REG_DE_D = 0b00010;
-const REG_DE_E = 0b00011;
-const REG_HL = 0b10100;
-const REG_HL_H = 0b00100;
-const REG_HL_L = 0b00101;
-const REG_WZ = 0b10110;
-const REG_WZ_W = 0b00110;
-const REG_WZ_Z = 0b00111;
+// const REG_DEC = 0b10;
+// const REG_INC2 = 0b11;
+// const REG_BC = 0b10000;
+// const REG_BC_B = 0b00000;
+// const REG_BC_C = 0b00001;
+// const REG_DE = 0b10010;
+// const REG_DE_D = 0b00010;
+// const REG_DE_E = 0b00011;
+// const REG_HL = 0b10100;
+// const REG_HL_H = 0b00100;
+// const REG_HL_L = 0b00101;
+// const REG_WZ = 0b10110;
+// const REG_WZ_W = 0b00110;
+// const REG_WZ_Z = 0b00111;
 const REG_PC = 0b11000;
-const REG_PC_P = 0b01000;
-const REG_PC_C = 0b01001;
-const REG_SP = 0b11010;
-const REG_SP_S = 0b01010;
-const REG_SP_P = 0b01011;
+// const REG_PC_P = 0b01000;
+// const REG_PC_C = 0b01001;
+// const REG_SP = 0b11010;
+// const REG_SP_S = 0b01010;
+// const REG_SP_P = 0b01011;
 
 export class Controller {
   ctrl_word = 0;
@@ -63,14 +63,70 @@ export class Controller {
     return getBits(this.ctrl_word, bits);
   }
 
+  dump() {
+    const bits = this.ctrl_word
+      .toString(2)
+      .padStart(32, "0")
+      .split("")
+      .map((x) => parseInt(x));
+    console.table([
+      bits.slice(0, 14),
+      [
+        "HLT",
+        "ALU_CS",
+        "ALU_FLAGS_WE",
+        "ALU_A_WE",
+        "ALU_A_STORE",
+        "ALU_A_RESTORE",
+        "ALU_TMP_WE",
+        "ALU_OP4",
+        "ALU_OP3",
+        "ALU_OP2",
+        "ALU_OP1",
+        "ALU_OP0",
+        "ALU_OE",
+        "ALU_FLAGS_OE",
+      ],
+    ]);
+
+    console.table([
+      bits.slice(14),
+      [
+        "REG_RD_SEL4",
+        "REG_RD_SEL3",
+        "REG_RD_SEL2",
+        "REG_RD_SEL1",
+        "REG_RD_SEL0",
+        "REG_WR_SEL4",
+        "REG_WR_SEL3",
+        "REG_WR_SEL2",
+        "REG_WR_SEL1",
+        "REG_WR_SEL0",
+        "REG_EXT1",
+        "REG_EXT0",
+        "REG_OE",
+        "REG_WE",
+        "MEM_WE",
+        "MEM_MAR_WE",
+        "MEM_OE",
+        "IR_WE",
+      ],
+    ]);
+  }
+
   always(clk: Clock, rst: number, ir: InstructionRegister, alu: Alu) {
     // always @(negedge clk, posedge rst)
     if (clk.isTock) {
       if (rst) {
         this.stage = 0;
       } else {
-        if (this.stage_rst) this.stage = 0;
-        else this.stage++;
+        if (this.stage_rst) {
+          this.stage = 0;
+          console.log(`controller.tock stage rst to 0`);
+        } else {
+          this.stage++;
+          console.log(`controller.tock stage++ => ${this.stage}`);
+        }
       }
     }
 
@@ -84,14 +140,21 @@ export class Controller {
       this.setControl([REG_RD_SEL4, REG_RD_SEL0], REG_PC); // read from registers[PC]
       this.setControl(REG_OE); // output selected register to bus
       this.setControl(MEM_MAR_WE); // read value on bus into MAR
+      console.log("controller.* stage 0 ");
+      this.dump();
     } else if (this.stage == 1) {
       // output ram[mar=PC] to bus and read bus into ir
       this.setControl(MEM_OE);
       this.setControl(IR_WE);
+      console.log("controller.* stage 1 ");
+      this.dump();
     } else if (this.stage == 2) {
       this.setControl([REG_WR_SEL4, REG_WR_SEL0], REG_PC);
       this.setControl([REG_EXT1, REG_EXT0], REG_INC);
+      console.log("controller.* stage 2");
+      this.dump();
     } else {
+      console.log(`controller.* stage 3+ opcode = ${ir.out} ${alu.out}`);
       switch (ir.out) {
         case 0x0e:
         case 0x1e:

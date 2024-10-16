@@ -186,10 +186,17 @@ export class Registers {
         this.ext(ctrl.reg_wr_sel, ctrl.reg_ext);
       } else if (ctrl.reg_we) {
         this.write(ctrl.reg_wr_sel, bus.value);
+        console.log(`regs.tick writing bus => reg(${ctrl.reg_wr_sel}) = ${bus.value}`);
+        this.dump();
       }
     }
 
     // tick or tock
     this.out = this.read(ctrl.reg_rd_sel);
+    console.log(`regs.* out = read(${ctrl.reg_rd_sel}) = ${this.out}`);
+  }
+
+  dump() {
+    console.table([[this.registers], ["B", "C", "D", "E", "H", "L", "W", "Z", "PCP", "PCC", "SPS", "SPP", "BC", "DE", "HL", "WZ", "PC", "SP"]]);
   }
 }
