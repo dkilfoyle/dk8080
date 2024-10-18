@@ -6,6 +6,22 @@ import { InstructionRegister } from "./InstructionRegister";
 import { Memory } from "./Memory";
 import { Registers } from "./Registers";
 
+interface ComputerState {
+  clkCount: number;
+  clkState: string;
+  ctrl_word: number;
+  regs: number[];
+  ir: number;
+  alu_acc: number;
+  alu_carry: number;
+  alu_act: number;
+  alu_tmp: number;
+  alu_flg: number;
+  bus: number;
+  mem: number[];
+  mar: number;
+}
+
 export class Computer {
   clk = new Clock();
   ctrl = new Controller();
@@ -16,6 +32,7 @@ export class Computer {
   mem = new Memory();
   rst = 0;
   out = 0;
+  states: ComputerState[] = [];
 
   constructor() {
     this.mem.load([
@@ -75,5 +92,23 @@ export class Computer {
     }
 
     this.clk.always(this.ctrl);
+    this.saveState();
+  }
+  saveState() {
+    this.states.push({
+      alu_acc: this.alu.acc,
+      alu_act: this.alu.act,
+      alu_carry: this.alu.carry,
+      alu_flg: this.alu.flags,
+      alu_tmp: this.alu.tmp,
+      bus: this.bus.value,
+      clkCount: this.clk.count,
+      clkState: this.clk.isTick ? "tick" : "tock",
+      ctrl_word: this.ctrl.ctrl_word,
+      ir: this.ir.out,
+      mem: [...this.mem.ram.slice(0, 255).values()],
+      mar: this.mem.mar,
+      regs: [...this.regs.registers.slice(0).values()],
+    });
   }
 }

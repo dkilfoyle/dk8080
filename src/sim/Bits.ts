@@ -1,4 +1,4 @@
-export const getBit = (x: number, bit: number) => x & (1 << bit);
+export const getBit = (x: number, bit: number) => (x & (1 << bit)) >> bit;
 export const isOn = (x: number, bit: number) => ((x & (1 << bit)) == 0 ? 0 : 1);
 export const setBit = (x: number, bit: number) => x | (1 << bit);
 export const clearBit = (x: number, bit: number) => x & ~(1 << bit);
