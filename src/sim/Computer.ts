@@ -6,7 +6,7 @@ import { InstructionRegister } from "./InstructionRegister";
 import { Memory } from "./Memory";
 import { Registers } from "./Registers";
 
-interface ComputerState {
+export interface ComputerState {
   clkCount: number;
   clkState: string;
   ctrl_word: number;
@@ -20,6 +20,7 @@ interface ComputerState {
   bus: number;
   mem: number[];
   mar: number;
+  stage: number;
 }
 
 export class Computer {
@@ -109,6 +110,7 @@ export class Computer {
       mem: [...this.mem.ram.slice(0, 255).values()],
       mar: this.mem.mar,
       regs: [...this.regs.registers.slice(0).values()],
+      stage: this.ctrl.stage,
     });
   }
 }

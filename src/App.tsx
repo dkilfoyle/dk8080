@@ -6,11 +6,12 @@ import { Computer } from "./sim/Computer";
 import { RegistersUI } from "./ui/RegistersUI";
 import { AluUI } from "./ui/AluUI";
 import { useMemo, useState } from "react";
-import { BusUI, OtherUI } from "./ui/BusUI";
+import { BusUI } from "./ui/BusUI";
 import { RamUI } from "./ui/RamUI";
 import { MemUI } from "./ui/MemUI";
 import { IrUI } from "./ui/IrUI";
 import { CtrlUI } from "./ui/CtrlUI";
+import { ClockUI } from "./ui/ClockUI";
 
 function App() {
   const [statei, setStatei] = useState(0);
@@ -23,28 +24,39 @@ function App() {
   comp.always();
   comp.always();
 
-  const s = useMemo(() => {
+  const curState = useMemo(() => {
     return comp.states[statei];
   }, [comp.states, statei]);
+
+  const rewind = () => setStatei(0);
+  const stepBack = () => setStatei((cur) => cur - 1);
+  const stepForward = () => setStatei((cur) => cur + 1);
+  const fastForward = () => setStatei(comp.states.length - 1);
 
   return (
     <PrimeReactProvider>
       <div className="flex flex-column gap-3 align-items-center">
         <div className="flex gap-3">
           <div className="flex flex-column gap-3">
-            <MemUI mar={s.mar} mem={s.mem}></MemUI>
-            <IrUI ir={s.ir}></IrUI>
+            <MemUI compState={curState}></MemUI>
+            <IrUI compState={curState}></IrUI>
+            <ClockUI
+              compState={curState}
+              onRewind={rewind}
+              onStepBack={stepBack}
+              onStepForward={stepForward}
+              onFastForward={fastForward}></ClockUI>
           </div>
           <div className="flex flex-column gap-3">
-            <BusUI bus={s.bus} clkCount={s.clkCount} clkState={s.clkState}></BusUI>
+            <BusUI compState={curState}></BusUI>
           </div>
           <div className="flex flex-column gap-3">
-            <RegistersUI regs={s.regs} ctrl_word={s.ctrl_word}></RegistersUI>
-            <AluUI acc={s.alu_acc} tmp={s.alu_tmp} act={s.alu_act} carry={s.alu_carry} flg={s.alu_flg} ctrl_word={s.ctrl_word}></AluUI>
+            <AluUI compState={curState}></AluUI>
+            <RegistersUI compState={curState}></RegistersUI>
           </div>
         </div>
-        <CtrlUI ctrl_word={s.ctrl_word}></CtrlUI>
-        <RamUI mem={s.mem}></RamUI>
+        <CtrlUI compState={curState}></CtrlUI>
+        <RamUI compState={curState}></RamUI>
       </div>
     </PrimeReactProvider>
   );

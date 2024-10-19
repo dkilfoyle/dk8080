@@ -1,9 +1,6 @@
 import _ from "lodash";
 import { getBit } from "../sim/Bits";
-
-interface CtrlUIProps {
-  ctrl_word: number;
-}
+import { ComputerState } from "../sim/Computer";
 
 const names = [
   "HLT",
@@ -40,7 +37,7 @@ const names = [
   "IR_WE",
 ].reverse();
 
-export const CtrlUI = ({ ctrl_word }: CtrlUIProps) => {
+export const CtrlUI = ({ compState }: { compState: ComputerState }) => {
   return (
     <div className="flex flex-column gap-2">
       <div className="flex gap-2">
@@ -49,7 +46,7 @@ export const CtrlUI = ({ ctrl_word }: CtrlUIProps) => {
           <div className="flex flex-column w-3rem bg-purple-100">
             <span>{i}</span>
             <span className="text-xs">{names[i]}</span>
-            <span className={getBit(ctrl_word, i) ? "bg-purple-400" : "bg-purple-100"}>{getBit(ctrl_word, i)}</span>
+            <span className={getBit(compState.ctrl_word, i) ? "bg-purple-300" : "bg-purple-100"}>{getBit(compState.ctrl_word, i)}</span>
           </div>
         ))}
       </div>
@@ -59,7 +56,7 @@ export const CtrlUI = ({ ctrl_word }: CtrlUIProps) => {
           <div className="flex flex-column w-3rem bg-blue-100">
             <span>{i}</span>
             <span className="text-xs">{names[i]}</span>
-            <span className={getBit(ctrl_word, i) ? "bg-blue-400" : "bg-blue-100"}>{getBit(ctrl_word, i)}</span>
+            <span className={getBit(compState.ctrl_word, i) ? "bg-blue-300" : "bg-blue-100"}>{getBit(compState.ctrl_word, i)}</span>
           </div>
         ))}
       </div>
@@ -69,10 +66,12 @@ export const CtrlUI = ({ ctrl_word }: CtrlUIProps) => {
           <div className="flex flex-column w-3rem bg-red-100">
             <span>{i}</span>
             <span className="text-xs">{names[i]}</span>
-            <span className={getBit(ctrl_word, i) ? "bg-red-400" : "bg-red-100"}>{getBit(ctrl_word, i)}</span>
+            <span className={getBit(compState.ctrl_word, i) ? "bg-red-300" : "bg-red-100"}>{getBit(compState.ctrl_word, i)}</span>
           </div>
         ))}
-        <span>{ctrl_word}</span>
+        <span>{compState.ctrl_word}</span>
+        <span>stage</span>
+        <span>{compState.stage}</span>
       </div>
     </div>
   );

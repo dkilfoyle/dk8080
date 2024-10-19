@@ -1,9 +1,16 @@
-export const getBit = (x: number, bit: number) => (x & (1 << bit)) >> bit;
-export const isOn = (x: number, bit: number) => ((x & (1 << bit)) == 0 ? 0 : 1);
+export const getBit = (x: number, bit: number) => (x >> bit) & 1;
+export const isOn = (x: number, bit: number) => (getBit(x, bit) == 0 ? 0 : 1);
 export const setBit = (x: number, bit: number) => x | (1 << bit);
 export const clearBit = (x: number, bit: number) => x & ~(1 << bit);
-export const setBitTo = (x: number, bit: number, value: number) => {
-  return value ? setBit(x, bit) : clearBit(x, bit);
+export const updateBit = (x: number, bit: number, value: number) => {
+  // Normalized bit value.
+  const bitValueNormalized = value ? 1 : 0;
+
+  // Init clear mask.
+  const clearMask = ~(1 << bit);
+
+  // Clear bit value and then set it up to required value.
+  return (x & clearMask) | (bitValueNormalized << bit);
 };
 
 export const combineBits = (bits: number[]) => {

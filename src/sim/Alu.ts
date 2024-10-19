@@ -1,4 +1,4 @@
-import { combineBits, getBit, isOn, setBitTo } from "./Bits";
+import { combineBits, getBit, isOn, updateBit } from "./Bits";
 import { Bus } from "./Bus";
 import { Clock } from "./Clock";
 import { Controller } from "./Controller";
@@ -99,7 +99,7 @@ export class Alu {
             break;
           case ALUOP.RAR:
             this.carry = getBit(this.acc, 0);
-            this.acc = (this.acc >> 1) | setBitTo(0, ALUFLG.C, getBit(this.flg, ALUFLG.C));
+            this.acc = (this.acc >> 1) | updateBit(0, ALUFLG.C, getBit(this.flg, ALUFLG.C));
             break;
           case ALUOP.CMA:
             this.acc = ~this.acc;
@@ -140,13 +140,13 @@ export class Alu {
             this.flg = combineBits([this.flg_c, this.flg_z, this.flg_s, this.flg_p]);
             break;
           case ALUOP.CMP:
-            this.flg = setBitTo(this.flg, ALUFLG.Z, this.act == 0 ? 1 : 0);
+            this.flg = updateBit(this.flg, ALUFLG.Z, this.act == 0 ? 1 : 0);
             break;
           case ALUOP.INR:
           case ALUOP.DCR:
-            this.flg = setBitTo(this.flg, ALUFLG.Z, this.flg_z);
-            this.flg = setBitTo(this.flg, ALUFLG.S, this.flg_s);
-            this.flg = setBitTo(this.flg, ALUFLG.P, this.flg_p);
+            this.flg = updateBit(this.flg, ALUFLG.Z, this.flg_z);
+            this.flg = updateBit(this.flg, ALUFLG.S, this.flg_s);
+            this.flg = updateBit(this.flg, ALUFLG.P, this.flg_p);
             break;
           case ALUOP.RLC:
           case ALUOP.RRC:
@@ -154,7 +154,7 @@ export class Alu {
           case ALUOP.RAR:
           case ALUOP.STC:
           case ALUOP.CMC:
-            this.flg = setBitTo(this.flg, ALUFLG.C, this.flg_c);
+            this.flg = updateBit(this.flg, ALUFLG.C, this.flg_c);
             break;
         }
       }
