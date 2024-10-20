@@ -1,9 +1,10 @@
 import { Button } from "primereact/button";
 import { useState } from "react";
-import { fprint } from "./utils";
+import { fprint, getBusColor } from "./utils";
 import { getBits, isOn } from "../sim/Bits";
 import { ComputerState } from "../sim/Computer";
 import { clsx } from "clsx";
+import { CTRL } from "../sim/Controller";
 
 const opnames = [
   "ADD",
@@ -40,22 +41,39 @@ export const AluUI = ({ compState }: { compState: ComputerState }) => {
           <span>ACT</span>
         </div>
         <div className="flex flex-column text-center w-3rem">
-          <span>{fprint(compState.alu_acc, format)}</span>
-          <span>{fprint(compState.alu_tmp, format)}</span>
+          <span
+            className={clsx({
+              [`bg-${getBusColor(compState)}-300`]: isOn(compState.ctrl_word, CTRL.ALU_A_WE) && compState.clkState == "tick",
+              "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_OE),
+            })}>
+            {fprint(compState.alu_acc, format)}
+          </span>
+          <span
+            className={clsx({
+              [`bg-${getBusColor(compState)}-300`]: isOn(compState.ctrl_word, CTRL.ALU_TMP_WE) && compState.clkState == "tick",
+            })}>
+            {fprint(compState.alu_tmp, format)}
+          </span>
           <span>{fprint(compState.alu_carry, format)}</span>
-          <span>{fprint(compState.alu_flg, format)}</span>
+          <span
+            className={clsx({
+              [`bg-${getBusColor(compState)}-300`]: isOn(compState.ctrl_word, CTRL.ALU_FLAGS_WE) && compState.clkState == "tick",
+              "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_FLAGS_OE),
+            })}>
+            {fprint(compState.alu_flg, format)}
+          </span>
           <span>{fprint(compState.alu_act, format)}</span>
         </div>
-        <div className="flex flex-column text-right w-3rem">
+        <div className="flex flex-column text-right w-2rem">
           <span>OP</span>
         </div>
-        <div className="flex flex-column text-center w-4rem">
-          <span>{opnames[getBits(compState.ctrl_word, [24, 21])]}</span>
-          <span className={clsx(isOn(compState.ctrl_word, 29))}>FLG_WE</span>
-          <span className={clsx(isOn(compState.ctrl_word, 28))}>A_WE</span>
-          <span className={clsx(isOn(compState.ctrl_word, 25))}>TMP_WE</span>
-          <span className={clsx(isOn(compState.ctrl_word, 19))}>OE</span>
-          <span className={clsx(isOn(compState.ctrl_word, 18))}>FLG_OE</span>
+        <div className="flex flex-column text-right w-5rem">
+          <span className="pr-2">{opnames[getBits(compState.ctrl_word, [CTRL.ALU_OP4, CTRL.ALU_OP0])]}</span>
+          <span className={clsx({ "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_FLAGS_WE) }, "pr-2")}>FLG_WE</span>
+          <span className={clsx({ "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_A_WE) }, "pr-2")}>A_WE</span>
+          <span className={clsx({ "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_TMP_WE) }, "pr-2")}>TMP_WE</span>
+          <span className={clsx({ "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_OE) }, "pr-2")}>OE</span>
+          <span className={clsx({ "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_FLAGS_OE) }, "pr-2")}>FLG_OE</span>
         </div>
       </div>
     </div>

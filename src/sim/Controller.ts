@@ -3,30 +3,32 @@ import { getBits, isOn, setBits } from "./Bits";
 import { Clock } from "./Clock";
 import { InstructionRegister } from "./InstructionRegister";
 
-const DISPLAY = 32;
-const HLT = 31;
-const ALU_CS = 30;
-const ALU_FLAGS_WE = 29;
-const ALU_A_WE = 28;
-const ALU_A_STORE = 27;
-const ALU_A_RESTORE = 26;
-const ALU_TMP_WE = 25;
-const ALU_OP4 = 24;
-const ALU_OP0 = 20;
-const ALU_OE = 19;
-const ALU_FLAGS_OE = 18;
-const REG_RD_SEL4 = 17;
-const REG_RD_SEL0 = 13;
-const REG_WR_SEL4 = 12;
-const REG_WR_SEL0 = 8;
-const REG_EXT1 = 7;
-const REG_EXT0 = 6;
-const REG_OE = 5;
-const REG_WE = 4;
-const MEM_WE = 3;
-const MEM_MAR_WE = 2;
-const MEM_OE = 1;
-const IR_WE = 0;
+export enum CTRL {
+  DISPLAY = 32,
+  HLT = 31,
+  ALU_CS = 30,
+  ALU_FLAGS_WE = 29,
+  ALU_A_WE = 28,
+  ALU_A_STORE = 27,
+  ALU_A_RESTORE = 26,
+  ALU_TMP_WE = 25,
+  ALU_OP4 = 24,
+  ALU_OP0 = 20,
+  ALU_OE = 19,
+  ALU_FLAGS_OE = 18,
+  REG_RD_SEL4 = 17,
+  REG_RD_SEL0 = 13,
+  REG_WR_SEL4 = 12,
+  REG_WR_SEL0 = 8,
+  REG_EXT1 = 7,
+  REG_EXT0 = 6,
+  REG_OE = 5,
+  REG_WE = 4,
+  MEM_WE = 3,
+  MEM_MAR_WE = 2,
+  MEM_OE = 1,
+  IR_WE = 0,
+}
 
 const REG_INC = 0b01;
 // const REG_DEC = 0b10;
@@ -137,20 +139,20 @@ export class Controller {
     // fetch TState 0
     if (this.stage == 0) {
       // load PC into MAR
-      this.setControl([REG_RD_SEL4, REG_RD_SEL0], REG_PC); // read from registers[PC]
-      this.setControl(REG_OE); // output selected register to bus
-      this.setControl(MEM_MAR_WE); // read value on bus into MAR
+      this.setControl([CTRL.REG_RD_SEL4, CTRL.REG_RD_SEL0], REG_PC); // read from registers[PC]
+      this.setControl(CTRL.REG_OE); // output selected register to bus
+      this.setControl(CTRL.MEM_MAR_WE); // read value on bus into MAR
       console.log("controller.* stage 0 ");
       this.dump();
     } else if (this.stage == 1) {
       // output ram[mar=PC] to bus and read bus into ir
-      this.setControl(MEM_OE);
-      this.setControl(IR_WE);
+      this.setControl(CTRL.MEM_OE);
+      this.setControl(CTRL.IR_WE);
       console.log("controller.* stage 1 ");
       this.dump();
     } else if (this.stage == 2) {
-      this.setControl([REG_WR_SEL4, REG_WR_SEL0], REG_PC);
-      this.setControl([REG_EXT1, REG_EXT0], REG_INC);
+      this.setControl([CTRL.REG_WR_SEL4, CTRL.REG_WR_SEL0], REG_PC);
+      this.setControl([CTRL.REG_EXT1, CTRL.REG_EXT0], REG_INC);
       console.log("controller.* stage 2");
       this.dump();
     } else {
@@ -165,20 +167,20 @@ export class Controller {
         case 0x26:
           // MVI Rd, d8
           if (this.stage == 3) {
-            this.setControl([REG_RD_SEL4, REG_RD_SEL0], REG_PC);
-            this.setControl(REG_OE);
-            this.setControl(MEM_MAR_WE);
+            this.setControl([CTRL.REG_RD_SEL4, CTRL.REG_RD_SEL0], REG_PC);
+            this.setControl(CTRL.REG_OE);
+            this.setControl(CTRL.MEM_MAR_WE);
           } else if (this.stage == 4) {
             if (getBits(ir.out, [5, 3]) == 0b111) {
-              this.setControl(ALU_A_WE);
+              this.setControl(CTRL.ALU_A_WE);
             } else {
-              this.setControl([REG_WR_SEL4, REG_WR_SEL0], getBits(ir.out, [5, 3]));
-              this.setControl(REG_WE);
+              this.setControl([CTRL.REG_WR_SEL4, CTRL.REG_WR_SEL0], getBits(ir.out, [5, 3]));
+              this.setControl(CTRL.REG_WE);
             }
-            this.setControl(MEM_OE);
+            this.setControl(CTRL.MEM_OE);
           } else if (this.stage == 5) {
-            this.setControl([REG_WR_SEL4, REG_WR_SEL0], REG_PC);
-            this.setControl([REG_EXT1, REG_EXT0], REG_INC);
+            this.setControl([CTRL.REG_WR_SEL4, CTRL.REG_WR_SEL0], REG_PC);
+            this.setControl([CTRL.REG_EXT1, CTRL.REG_EXT0], REG_INC);
             this.stage_rst = 1;
           }
       }
@@ -186,63 +188,63 @@ export class Controller {
   }
 
   get display() {
-    return isOn(this.ctrl_word, DISPLAY);
+    return isOn(this.ctrl_word, CTRL.DISPLAY);
   }
   get hlt() {
-    return isOn(this.ctrl_word, HLT);
+    return isOn(this.ctrl_word, CTRL.HLT);
   }
   get alu_cs() {
-    return isOn(this.ctrl_word, ALU_CS);
+    return isOn(this.ctrl_word, CTRL.ALU_CS);
   }
   get alu_flags_we() {
-    return isOn(this.ctrl_word, ALU_FLAGS_WE);
+    return isOn(this.ctrl_word, CTRL.ALU_FLAGS_WE);
   }
   get alu_a_we() {
-    return isOn(this.ctrl_word, ALU_A_WE);
+    return isOn(this.ctrl_word, CTRL.ALU_A_WE);
   }
   get alu_a_store() {
-    return isOn(this.ctrl_word, ALU_A_STORE);
+    return isOn(this.ctrl_word, CTRL.ALU_A_STORE);
   }
   get alu_a_restore() {
-    return isOn(this.ctrl_word, ALU_A_RESTORE);
+    return isOn(this.ctrl_word, CTRL.ALU_A_RESTORE);
   }
   get alu_tmp_we() {
-    return isOn(this.ctrl_word, ALU_TMP_WE);
+    return isOn(this.ctrl_word, CTRL.ALU_TMP_WE);
   }
   get alu_op() {
-    return this.getControl([ALU_OP4, ALU_OP0]);
+    return this.getControl([CTRL.ALU_OP4, CTRL.ALU_OP0]);
   }
   get alu_oe() {
-    return isOn(this.ctrl_word, ALU_OE);
+    return isOn(this.ctrl_word, CTRL.ALU_OE);
   }
   get alu_flags_oe() {
-    return isOn(this.ctrl_word, ALU_FLAGS_OE);
+    return isOn(this.ctrl_word, CTRL.ALU_FLAGS_OE);
   }
   get reg_rd_sel() {
-    return this.getControl([REG_RD_SEL4, REG_RD_SEL0]);
+    return this.getControl([CTRL.REG_RD_SEL4, CTRL.REG_RD_SEL0]);
   }
   get reg_wr_sel() {
-    return this.getControl([REG_WR_SEL4, REG_WR_SEL0]);
+    return this.getControl([CTRL.REG_WR_SEL4, CTRL.REG_WR_SEL0]);
   }
   get reg_ext() {
-    return this.getControl([REG_EXT1, REG_EXT0]);
+    return this.getControl([CTRL.REG_EXT1, CTRL.REG_EXT0]);
   }
   get reg_oe() {
-    return isOn(this.ctrl_word, REG_OE);
+    return isOn(this.ctrl_word, CTRL.REG_OE);
   }
   get reg_we() {
-    return isOn(this.ctrl_word, REG_WE);
+    return isOn(this.ctrl_word, CTRL.REG_WE);
   }
   get mem_we() {
-    return isOn(this.ctrl_word, MEM_WE);
+    return isOn(this.ctrl_word, CTRL.MEM_WE);
   }
   get mem_mar_we() {
-    return isOn(this.ctrl_word, MEM_MAR_WE);
+    return isOn(this.ctrl_word, CTRL.MEM_MAR_WE);
   }
   get mem_oe() {
-    return isOn(this.ctrl_word, MEM_OE);
+    return isOn(this.ctrl_word, CTRL.MEM_OE);
   }
   get ir_we() {
-    return isOn(this.ctrl_word, IR_WE);
+    return isOn(this.ctrl_word, CTRL.IR_WE);
   }
 }

@@ -1,9 +1,10 @@
 import { Button } from "primereact/button";
 import { useState } from "react";
-import { fprint } from "./utils";
+import { fprint, getBusColor } from "./utils";
 import { ComputerState } from "../sim/Computer";
 import clsx from "clsx";
 import { isOn } from "../sim/Bits";
+import { CTRL } from "../sim/Controller";
 
 const opcodes: Record<string, string> = {
   "3C": "INR A",
@@ -245,13 +246,18 @@ export const IrUI = ({ compState }: { compState: ComputerState }) => {
           <span>IR</span>
           <span>OP</span>
         </div>
-        <div className="flex flex-column text-center w-3rem">
-          <span>{fprint(compState.ir, format)}</span>
+        <div className="flex flex-column text-right w-6rem">
+          <span
+            className={clsx({
+              [`bg-${getBusColor(compState)}-300`]: isOn(compState.ctrl_word, CTRL.IR_WE) && compState.clkState == "tick",
+            })}>
+            {fprint(compState.ir, format)}
+          </span>
           <span>{opcodes[compState.ir.toString().padStart(2, "0")]}</span>
         </div>
         <div className="flex flex-auto"></div>
-        <div className="flex flex-column text-center w-4rem">
-          <span className={clsx({ "bg-green-300": isOn(compState.ctrl_word, 0) })}>IR_WE</span>
+        <div className="flex flex-column text-right w-4rem">
+          <span className={clsx({ "bg-green-300": isOn(compState.ctrl_word, 0) }, "pr-2")}>IR_WE</span>
         </div>
       </div>
     </div>

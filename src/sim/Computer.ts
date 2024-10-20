@@ -47,16 +47,17 @@ export class Computer {
       // out
       0xd3,
     ]);
+    this.ctrl.always(this.clk, this.rst, this.ir, this.alu); // decode ir => controls
   }
 
   always() {
     if (this.rst) {
       this.out = 0;
+      this.ctrl.always(this.clk, this.rst, this.ir, this.alu); // decode ir => controls
     } else if (this.clk.isTick) {
       this.out = this.alu.out;
     }
 
-    this.ctrl.always(this.clk, this.rst, this.ir, this.alu); // decode ir => controls
     // stages 0-2 load ir with ram[pc] and increment pc
     // stage 0: pc => mar
     //   REG_RD_SEL = REG_PC       Select PC
@@ -76,24 +77,24 @@ export class Computer {
       this.regs.always(this.clk, this.rst, this.ctrl, this.bus); // select reg
       this.bus.always(this.ctrl, this.alu, this.mem, this.regs);
       this.mem.always(this.clk, this.rst, this.ctrl, this.bus); // bus <=> mem[mar]
-      this.ir.always(this.clk, this.rst, this.ctrl, this.bus); // bus -> ir
       this.alu.always(this.clk, this.rst, this.ctrl, this.bus);
     } else if (this.ctrl.alu_oe || this.ctrl.alu_flags_oe) {
       this.alu.always(this.clk, this.rst, this.ctrl, this.bus);
       this.bus.always(this.ctrl, this.alu, this.mem, this.regs);
       this.regs.always(this.clk, this.rst, this.ctrl, this.bus); // select reg
       this.mem.always(this.clk, this.rst, this.ctrl, this.bus); // bus <=> mem[mar]
-      this.ir.always(this.clk, this.rst, this.ctrl, this.bus); // bus -> ir
     } else if (this.ctrl.mem_oe) {
       this.mem.always(this.clk, this.rst, this.ctrl, this.bus); // bus <=> mem[mar]
       this.bus.always(this.ctrl, this.alu, this.mem, this.regs);
       this.alu.always(this.clk, this.rst, this.ctrl, this.bus);
       this.regs.always(this.clk, this.rst, this.ctrl, this.bus); // select reg
-      this.ir.always(this.clk, this.rst, this.ctrl, this.bus); // bus -> ir
     }
 
-    this.clk.always(this.ctrl);
+    this.ir.always(this.clk, this.rst, this.ctrl, this.bus); // bus -> ir
+    this.ctrl.always(this.clk, this.rst, this.ir, this.alu); // decode ir => controls
+
     this.saveState();
+    this.clk.always(this.ctrl);
   }
   saveState() {
     this.states.push({
