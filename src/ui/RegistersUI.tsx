@@ -6,36 +6,31 @@ import { ComputerState } from "../sim/Computer";
 import clsx from "clsx";
 import { CTRL } from "../sim/Controller";
 
-const regnames = [
-  "B",
-  "C",
-  "D",
-  "E",
-  "H",
-  "L",
-  "W",
-  "Z",
-  "hi(PC)",
-  "lo(PC)",
-  "hi(SP)",
-  "lo(SP)",
-  "BC",
-  "-",
-  "DE",
-  "-",
-  "HL",
-  "-",
-  "WZ",
-  "-",
-  "PC",
-  "-",
-  "SP",
-  "-",
-];
-const extnames = ["_", "INC", "DEC", "INC2"];
+const regnames: Record<number, string> = {
+  0b00000: "B",
+  0b00001: "C",
+  0b00010: "D",
+  0b00011: "E",
+  0b00100: "H",
+  0b00101: "L",
+  0b00110: "W",
+  0b00111: "Z",
+  0b01000: "hi(PC)",
+  0b01001: "lo(PC)",
+  0b01010: "hi(SP)",
+  0b01011: "lo(SP)",
+  0b10000: "BC",
+  0b10010: "DE",
+  0b10100: "HL",
+  0b10110: "WZ",
+  0b11000: "PC",
+  0b11010: "SP",
+};
+const extnames = ["NA", "INC", "DEC", "INC2"];
 
-const getClass = (ctrl: { rd: string; wr: string; we: number; clk: string; oe: number }, s: ComputerState, x: string[]) => {
+const getClass = (ctrl: { rd: string; wr: string; ext: string; we: number; clk: string; oe: number }, s: ComputerState, x: string[]) => {
   if (ctrl.we == 1 && ctrl.clk == "tick" && x.includes(ctrl.wr)) return `bg-${getBusColor(s)}-300}`;
+  if (ctrl.ext != "NA" && ctrl.clk == "tick" && x.includes(ctrl.wr)) return `bg-blue-300`;
   if (ctrl.oe == 1 && x.includes(ctrl.rd)) return "bg-blue-300";
 };
 
@@ -44,10 +39,11 @@ export const RegistersUI = ({ compState }: { compState: ComputerState }) => {
 
   const ctrl = useMemo(
     () => ({
-      rd: regnames[getBits(compState.ctrl_word, [17, 13])],
-      wr: regnames[getBits(compState.ctrl_word, [12, 8])],
-      we: isOn(compState.ctrl_word, 4),
-      oe: isOn(compState.ctrl_word, 5),
+      rd: regnames[getBits(compState.ctrl_word, [CTRL.REG_RD_SEL4, CTRL.REG_RD_SEL0])],
+      wr: regnames[getBits(compState.ctrl_word, [CTRL.REG_WR_SEL4, CTRL.REG_WR_SEL0])],
+      ext: extnames[getBits(compState.ctrl_word, [CTRL.REG_EXT1, CTRL.REG_EXT0])],
+      we: isOn(compState.ctrl_word, CTRL.REG_WE),
+      oe: isOn(compState.ctrl_word, CTRL.REG_OE),
       clk: compState.clkState,
     }),
     [compState.clkState, compState.ctrl_word]
@@ -78,7 +74,7 @@ export const RegistersUI = ({ compState }: { compState: ComputerState }) => {
           <span className={getClass(ctrl, compState, ["lo(PC)", "PC"])}>{fprint(compState.regs[9], format)}</span>
           <span className={getClass(ctrl, compState, ["lo(SP)", "SP"])}>{fprint(compState.regs[11], format)}</span>
         </div>
-        <div className="flex flex-column text-right w-5rem">
+        <div className="flex flex-column text-right w-3rem">
           <span>RD</span>
           <span>WR</span>
           <span>EXT</span>
@@ -86,9 +82,7 @@ export const RegistersUI = ({ compState }: { compState: ComputerState }) => {
         <div className="flex flex-column text-right w-3rem">
           <span className="pr-2">{ctrl.rd}</span>
           <span className="pr-2">{ctrl.wr}</span>
-          <span className={clsx({ "bg-blue-300": getBits(compState.ctrl_word, [CTRL.REG_EXT1, CTRL.REG_EXT0]) > 0 }, "pr-2")}>
-            {extnames[getBits(compState.ctrl_word, [7, 6])]}
-          </span>
+          <span className={clsx({ "bg-blue-300": ctrl.ext != "NA" }, "pr-2")}>{ctrl.ext}</span>
           <span className={clsx({ "bg-blue-300": isOn(compState.ctrl_word, 5) }, "pr-2")}>OE</span>
           <span className={clsx({ "bg-blue-300": isOn(compState.ctrl_word, 4) }, "pr-2")}>WE</span>
         </div>

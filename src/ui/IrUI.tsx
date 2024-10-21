@@ -1,5 +1,5 @@
 import { Button } from "primereact/button";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { fprint, getBusColor } from "./utils";
 import { ComputerState } from "../sim/Computer";
 import clsx from "clsx";
@@ -43,7 +43,7 @@ const opcodes: Record<string, string> = {
   "84": "ADD H",
   "85": "ADD L",
   "86": "ADD M",
-  C6: "ADI byte",
+  C6: "ADI d8",
   "8F": "ADC A",
   "88": "ADC B",
   "89": "ADC C",
@@ -52,7 +52,7 @@ const opcodes: Record<string, string> = {
   "8C": "ADC H",
   "8D": "ADC L",
   "8E": "ADC M",
-  CE: "ACI byte",
+  CE: "ACI d8",
   "97": "SUB A",
   "90": "SUB B",
   "91": "SUB C",
@@ -61,7 +61,7 @@ const opcodes: Record<string, string> = {
   "94": "SUB H",
   "95": "SUB L",
   "96": "SUB M",
-  D6: "SUI byte",
+  D6: "SUI d8",
   "9F": "SBB A",
   "98": "SBB B",
   "99": "SBB C",
@@ -70,7 +70,7 @@ const opcodes: Record<string, string> = {
   "9C": "SBB H",
   "9D": "SBB L",
   "9E": "SBB M",
-  DE: "SBI byte",
+  DE: "SBI d8",
   A7: "ANA A",
   A0: "ANA B",
   A1: "ANA C",
@@ -79,7 +79,7 @@ const opcodes: Record<string, string> = {
   A4: "ANA H",
   A5: "ANA L",
   A6: "ANA M",
-  E6: "ANI byte",
+  E6: "ANI d8",
   B7: "ORA A",
   B0: "ORA B",
   B1: "ORA C",
@@ -88,7 +88,7 @@ const opcodes: Record<string, string> = {
   B4: "ORA H",
   B5: "ORA L",
   B6: "ORA M",
-  F6: "ORI byte",
+  F6: "ORI d8",
   AF: "XRA A",
   A8: "XRA B",
   A9: "XRA C",
@@ -97,7 +97,7 @@ const opcodes: Record<string, string> = {
   AC: "XRA H",
   AD: "XRA L",
   AE: "XRA M",
-  EE: "XRI byte",
+  EE: "XRI d8",
   "07": "RLC	",
   "17": "RAL	",
   "1F": "RAR	",
@@ -189,14 +189,14 @@ const opcodes: Record<string, string> = {
   "73": "MOV M, E",
   "74": "MOV M, H",
   "75": "MOV M, L",
-  "3E": "MVI A, byte",
-  "06": "MVI B, byte",
-  "0E": "MVI C, byte",
-  "16": "MVI D, byte",
-  "1E": "MVI E, byte",
-  "26": "MVI H, byte",
-  "2E": "MVI L, byte",
-  "36": "MVI M, byte",
+  "3E": "MVI A, d8",
+  "06": "MVI B, d8",
+  "0E": "MVI C, d8",
+  "16": "MVI D, d8",
+  "1E": "MVI E, d8",
+  "26": "MVI H, d8",
+  "2E": "MVI L, d8",
+  "36": "MVI M, d8",
   C5: "PUSH B",
   D5: "PUSH D",
   E5: "PUSH H",
@@ -238,6 +238,13 @@ const opcodes: Record<string, string> = {
 
 export const IrUI = ({ compState }: { compState: ComputerState }) => {
   const [format, setFormat] = useState<16 | 10>(16);
+  const ctrl = useMemo(
+    () => ({
+      ir_we: isOn(compState.ctrl_word, CTRL.IR_WE),
+      op: opcodes[compState.ir.toString(16).toUpperCase().padStart(2, "0")],
+    }),
+    [compState.ctrl_word, compState.ir]
+  );
   return (
     <div className="flex flex-column bg-green-100 p-2 gap-3">
       <Button label="IR" onClick={() => setFormat(format == 16 ? 10 : 16)} size="small"></Button>
@@ -249,15 +256,15 @@ export const IrUI = ({ compState }: { compState: ComputerState }) => {
         <div className="flex flex-column text-right w-6rem">
           <span
             className={clsx({
-              [`bg-${getBusColor(compState)}-300`]: isOn(compState.ctrl_word, CTRL.IR_WE) && compState.clkState == "tick",
+              [`bg-${getBusColor(compState)}-300`]: ctrl.ir_we && compState.clkState == "tick",
             })}>
             {fprint(compState.ir, format)}
           </span>
-          <span>{opcodes[compState.ir.toString().padStart(2, "0")]}</span>
+          <span>{ctrl.op}</span>
         </div>
         <div className="flex flex-auto"></div>
         <div className="flex flex-column text-right w-4rem">
-          <span className={clsx({ "bg-green-300": isOn(compState.ctrl_word, 0) }, "pr-2")}>IR_WE</span>
+          <span className={clsx({ "bg-green-300": ctrl.ir_we }, "pr-2")}>IR_WE</span>
         </div>
       </div>
     </div>

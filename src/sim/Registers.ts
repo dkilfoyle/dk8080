@@ -1,7 +1,7 @@
-import { getBits, hi, isOn, lo } from "./Bits";
+import { hi, isOn, lo } from "./Bits";
 import { Bus } from "./Bus";
 import { Clock } from "./Clock";
-import { Controller, CTRL } from "./Controller";
+import { Controller } from "./Controller";
 
 enum REG8 {
   B = 0,

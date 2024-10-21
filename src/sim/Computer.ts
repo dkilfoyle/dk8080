@@ -21,6 +21,7 @@ export interface ComputerState {
   mem: number[];
   mar: number;
   stage: number;
+  stage_max: number;
 }
 
 export class Computer {
@@ -118,6 +119,7 @@ export class Computer {
       mar: this.mem.mar,
       regs: [...this.regs.registers.slice(0).values()],
       stage: this.ctrl.stage,
+      stage_max: this.ctrl.stage_max,
     });
   }
 }

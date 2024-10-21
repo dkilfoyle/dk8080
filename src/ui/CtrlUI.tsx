@@ -1,6 +1,7 @@
 import _ from "lodash";
 import { getBit } from "../sim/Bits";
 import { ComputerState } from "../sim/Computer";
+import clsx from "clsx";
 
 const names = [
   "HLT",
@@ -69,9 +70,12 @@ export const CtrlUI = ({ compState }: { compState: ComputerState }) => {
             <span className={getBit(compState.ctrl_word, i) ? "bg-red-300" : "bg-red-100"}>{getBit(compState.ctrl_word, i)}</span>
           </div>
         ))}
-        <span>{compState.ctrl_word}</span>
-        <span>stage</span>
-        <span>{compState.stage}</span>
+      </div>
+      <div className="flex gap-2">
+        <span className="w-2rem">T</span>
+        {_.range(0, compState.stage_max + 1).map((i) => (
+          <span className={clsx(i == compState.stage ? "bg-green-300" : "bg-gray-300", "w-3rem text-center")}>{i}</span>
+        ))}
       </div>
     </div>
   );

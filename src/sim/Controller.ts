@@ -56,6 +56,7 @@ export class Controller {
   ctrl_word = 0;
   stage = 0;
   stage_rst = 0;
+  stage_max = 2;
 
   setControl(bits: number | number[], value = 1) {
     this.ctrl_word = setBits(this.ctrl_word, bits, value);
@@ -121,6 +122,7 @@ export class Controller {
     if (clk.isTock) {
       if (rst) {
         this.stage = 0;
+        this.stage_max = 2;
       } else {
         if (this.stage_rst) {
           this.stage = 0;
@@ -158,6 +160,7 @@ export class Controller {
     } else {
       console.log(`controller.* stage 3+ opcode = ${ir.out} ${alu.out}`);
       switch (ir.out) {
+        case 0o1:
         case 0x0e:
         case 0x1e:
         case 0x2e:
@@ -166,6 +169,7 @@ export class Controller {
         case 0x16:
         case 0x26:
           // MVI Rd, d8
+          this.stage_max = 5;
           if (this.stage == 3) {
             this.setControl([CTRL.REG_RD_SEL4, CTRL.REG_RD_SEL0], REG_PC);
             this.setControl(CTRL.REG_OE);
