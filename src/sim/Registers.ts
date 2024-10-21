@@ -153,7 +153,7 @@ export class Registers {
   }
 
   ext(wr_sel: REGSEL, ext: REGEXT) {
-    if (wr_sel > 0b10000) throw Error(`register.ext invalid wr_sel ${wr_sel}`);
+    if (wr_sel < 0b10000) throw Error(`register.ext invalid wr_sel ${wr_sel}`);
     const extAdd = [0, 1, -1, 2][ext];
 
     switch (wr_sel) {

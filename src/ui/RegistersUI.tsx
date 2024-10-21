@@ -6,7 +6,32 @@ import { ComputerState } from "../sim/Computer";
 import clsx from "clsx";
 import { CTRL } from "../sim/Controller";
 
-const regnames = ["B", "C", "D", "E", "H", "L", "W", "Z", "hi(PC)", "lo(PC)", "hi(SP)", "lo(SP)", "BC", "DE", "HL", "WZ", "PC", "SP"];
+const regnames = [
+  "B",
+  "C",
+  "D",
+  "E",
+  "H",
+  "L",
+  "W",
+  "Z",
+  "hi(PC)",
+  "lo(PC)",
+  "hi(SP)",
+  "lo(SP)",
+  "BC",
+  "-",
+  "DE",
+  "-",
+  "HL",
+  "-",
+  "WZ",
+  "-",
+  "PC",
+  "-",
+  "SP",
+  "-",
+];
 const extnames = ["_", "INC", "DEC", "INC2"];
 
 const getClass = (ctrl: { rd: string; wr: string; we: number; clk: string; oe: number }, s: ComputerState, x: string[]) => {
@@ -60,10 +85,10 @@ export const RegistersUI = ({ compState }: { compState: ComputerState }) => {
         </div>
         <div className="flex flex-column text-right w-3rem">
           <span className="pr-2">{ctrl.rd}</span>
-          <span className="pr-2">
-            {ctrl.wr}={getBits(compState.ctrl_word, [CTRL.REG_WR_SEL4, CTRL.REG_WR_SEL0])}
+          <span className="pr-2">{ctrl.wr}</span>
+          <span className={clsx({ "bg-blue-300": getBits(compState.ctrl_word, [CTRL.REG_EXT1, CTRL.REG_EXT0]) > 0 }, "pr-2")}>
+            {extnames[getBits(compState.ctrl_word, [7, 6])]}
           </span>
-          <span className="pr-2">{extnames[getBits(compState.ctrl_word, [7, 6])]}</span>
           <span className={clsx({ "bg-blue-300": isOn(compState.ctrl_word, 5) }, "pr-2")}>OE</span>
           <span className={clsx({ "bg-blue-300": isOn(compState.ctrl_word, 4) }, "pr-2")}>WE</span>
         </div>

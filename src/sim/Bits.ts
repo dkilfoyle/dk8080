@@ -20,7 +20,7 @@ export const combineBits = (bits: number[]) => {
 };
 export const getBits = (x: number, bits: number | number[]) => {
   const [hi, lo] = Array.isArray(bits) ? bits : [bits, bits];
-  return (x >> lo) & ((1 << (hi - lo)) - 1);
+  return (x >> lo) & ((1 << (hi - lo + 1)) - 1);
 };
 export const setBits = (x: number, bits: number | number[], value = 1) => {
   const [hi, lo] = Array.isArray(bits) ? bits : [bits, bits];
