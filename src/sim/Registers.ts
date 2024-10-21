@@ -1,7 +1,7 @@
-import { hi, isOn, lo } from "./Bits";
+import { getBits, hi, isOn, lo } from "./Bits";
 import { Bus } from "./Bus";
 import { Clock } from "./Clock";
-import { Controller } from "./Controller";
+import { Controller, CTRL } from "./Controller";
 
 enum REG8 {
   B = 0,
@@ -153,7 +153,7 @@ export class Registers {
   }
 
   ext(wr_sel: REGSEL, ext: REGEXT) {
-    if (wr_sel < 0b10000) throw Error(`register.ext invalid wr_sel ${wr_sel}`);
+    if (wr_sel > 0b10000) throw Error(`register.ext invalid wr_sel ${wr_sel}`);
     const extAdd = [0, 1, -1, 2][ext];
 
     switch (wr_sel) {
@@ -183,6 +183,7 @@ export class Registers {
       this.registers.fill(0);
     } else if (clk.isTick) {
       if (ctrl.reg_ext > 0) {
+        console.log("CTRL REG EXT", ctrl.reg_wr_sel, ctrl.reg_ext);
         this.ext(ctrl.reg_wr_sel, ctrl.reg_ext);
       } else if (ctrl.reg_we) {
         this.write(ctrl.reg_wr_sel, bus.value);
@@ -190,7 +191,6 @@ export class Registers {
         this.dump();
       }
     }
-
     // tick or tock
     this.out = this.read(ctrl.reg_rd_sel);
     console.log(`regs.* out = read(${ctrl.reg_rd_sel}) = ${this.out}`);

@@ -88,6 +88,12 @@ export class Computer {
       this.bus.always(this.ctrl, this.alu, this.mem, this.regs);
       this.alu.always(this.clk, this.rst, this.ctrl, this.bus);
       this.regs.always(this.clk, this.rst, this.ctrl, this.bus); // select reg
+    } else {
+      // nothing written to bus so order doesnt matter
+      this.mem.always(this.clk, this.rst, this.ctrl, this.bus); // bus <=> mem[mar]
+      this.bus.always(this.ctrl, this.alu, this.mem, this.regs);
+      this.alu.always(this.clk, this.rst, this.ctrl, this.bus);
+      this.regs.always(this.clk, this.rst, this.ctrl, this.bus); // select reg
     }
 
     this.ir.always(this.clk, this.rst, this.ctrl, this.bus); // bus -> ir
