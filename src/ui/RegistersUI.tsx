@@ -29,7 +29,7 @@ const regnames: Record<number, string> = {
 const extnames = ["NA", "INC", "DEC", "INC2"];
 
 const getClass = (ctrl: { rd: string; wr: string; ext: string; we: number; clk: string; oe: number }, s: ComputerState, x: string[]) => {
-  if (ctrl.we == 1 && ctrl.clk == "tick" && x.includes(ctrl.wr)) return `bg-${getBusColor(s)}-300}`;
+  if (ctrl.we == 1 && ctrl.clk == "tick" && x.includes(ctrl.wr)) return `bg-${getBusColor(s)}-300`;
   if (ctrl.ext != "NA" && ctrl.clk == "tick" && x.includes(ctrl.wr)) return `bg-blue-300`;
   if (ctrl.oe == 1 && x.includes(ctrl.rd)) return "bg-blue-300";
 };
@@ -57,6 +57,7 @@ export const RegistersUI = ({ compState }: { compState: ComputerState }) => {
           <span>BC</span>
           <span>DE</span>
           <span>HL</span>
+          <span>WZ</span>
           <span>PC</span>
           <span>SP</span>
         </div>
@@ -64,6 +65,7 @@ export const RegistersUI = ({ compState }: { compState: ComputerState }) => {
           <span className={getClass(ctrl, compState, ["B", "BC"])}>{fprint(compState.regs[0], format)}</span>
           <span className={getClass(ctrl, compState, ["D", "DE"])}>{fprint(compState.regs[2], format)}</span>
           <span className={getClass(ctrl, compState, ["H", "HL"])}>{fprint(compState.regs[4], format)}</span>
+          <span className={getClass(ctrl, compState, ["W", "WZ"])}>{fprint(compState.regs[6], format)}</span>
           <span className={getClass(ctrl, compState, ["hi(PC)", "PC"])}>{fprint(compState.regs[8], format)}</span>
           <span className={getClass(ctrl, compState, ["hi(SP)", "SP"])}>{fprint(compState.regs[10], format)}</span>
         </div>
@@ -71,6 +73,7 @@ export const RegistersUI = ({ compState }: { compState: ComputerState }) => {
           <span className={getClass(ctrl, compState, ["C", "BC"])}>{fprint(compState.regs[1], format)}</span>
           <span className={getClass(ctrl, compState, ["E", "DE"])}>{fprint(compState.regs[3], format)}</span>
           <span className={getClass(ctrl, compState, ["L", "HL"])}>{fprint(compState.regs[5], format)}</span>
+          <span className={getClass(ctrl, compState, ["Z", "WZ"])}>{fprint(compState.regs[7], format)}</span>
           <span className={getClass(ctrl, compState, ["lo(PC)", "PC"])}>{fprint(compState.regs[9], format)}</span>
           <span className={getClass(ctrl, compState, ["lo(SP)", "SP"])}>{fprint(compState.regs[11], format)}</span>
         </div>

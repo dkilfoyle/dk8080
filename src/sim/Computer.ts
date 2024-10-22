@@ -39,7 +39,7 @@ export class Computer {
   constructor() {
     this.mem.load([
       // lxi sp, $f0
-      // 0x31, 0xf0, 0x00,
+      0x31, 0xf0, 0x00,
       // mvi a, $1
       0x3e, 0x01,
       // mvi b, $0
@@ -76,8 +76,9 @@ export class Computer {
     // which component is writing to the bus - do this first so that the other components reading the bus get the uptodate value
     if (this.ctrl.reg_oe) {
       this.regs.always(this.clk, this.rst, this.ctrl, this.bus); // select reg
-      this.bus.always(this.ctrl, this.alu, this.mem, this.regs);
-      this.mem.always(this.clk, this.rst, this.ctrl, this.bus); // bus <=> mem[mar]
+      this.bus.always(this.ctrl, this.alu, this.mem, this.regs); // copy reg to bus
+      this.regs.always(this.clk, this.rst, this.ctrl, this.bus); // if reg_we read bus(Rs) to Rd ie MOV Rd, Rs
+      this.mem.always(this.clk, this.rst, this.ctrl, this.bus); //
       this.alu.always(this.clk, this.rst, this.ctrl, this.bus);
     } else if (this.ctrl.alu_oe || this.ctrl.alu_flags_oe) {
       this.alu.always(this.clk, this.rst, this.ctrl, this.bus);

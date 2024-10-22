@@ -48,7 +48,7 @@ export enum REGSEL {
   SP = 0b11010,
 }
 
-enum REGEXT {
+export enum REGEXT {
   INC = 0b01,
   DEC = 0b10,
   INC2 = 0b11,

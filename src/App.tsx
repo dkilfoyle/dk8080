@@ -29,6 +29,35 @@ function App() {
   comp.always();
   comp.always();
   comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
+  comp.always();
 
   const curState = useMemo(() => {
     return comp.states[statei];
