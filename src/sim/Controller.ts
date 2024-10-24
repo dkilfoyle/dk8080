@@ -1,5 +1,6 @@
+import _ from "lodash";
 import { Alu } from "./Alu";
-import { getBits, isOn, setBits } from "./Bits";
+import { getBit, getBits, isOn, setBits } from "./Bits";
 import { Clock } from "./Clock";
 import { InstructionRegister } from "./InstructionRegister";
 import { REGEXT, REGSEL } from "./Registers";
@@ -99,9 +100,204 @@ export class Controller {
         case ir8 == "061":
           this.LXI_Rd_d16(ir.out);
           break;
+        case ir8.match(/0[0-7]+7/) != null:
+          this.ALUSecondary(ir.out);
+          break;
+        case ir8.match(/3[0-7]+2/) != null:
+          this.JMP(ir.out, alu.flags);
+          break;
+        case ir8 == "303":
+          this.JMP(ir.out);
+          break;
+        case ir8.match(/3[0-7]+4/) != null:
+          this.CALL(ir.out, alu.flags);
+          break;
+        case ir8 == "315":
+          this.CALL(ir.out);
+          break;
+        case ir8.match(/3[0-7]+0/) != null:
+          this.RET(ir.out, alu.flags);
+          break;
+        case ir8 == "311":
+          this.RET(ir.out);
+          break;
+        case ir8 == "0323":
+          this.OUT();
         // default:
         //   throw Error();
       }
+    }
+  }
+
+  ALU_M(irout: number) {
+    this.stage_max = 5;
+    switch (this.stage) {
+      case 3:
+        this.setControls("mar=reg", REGSEL.HL);
+        break;
+      case 4:
+        this.setControl(CTRL.MEM_OE);
+        this.setControl(CTRL.ALU_TMP_WE);
+        break;
+      case 5:
+        this.setControl(CTRL.ALU_CS);
+        this.setControl([CTRL.ALU_OP4, CTRL.ALU_OP0], getBits(irout, [5, 3]));
+        this.stage_rst = 1;
+    }
+  }
+
+  ALU_Rs(irout: number) {
+    this.stage_max = 4;
+    const Rs = getBits(irout, [2, 0]);
+    const op = getBits(irout, [5, 3]);
+    switch (this.stage) {
+      case 3:
+        if (op == 0b111) {
+          this.setControl(CTRL.ALU_CS);
+          this.setControl([CTRL.ALU_OP4, CTRL.ALU_OP0], op);
+          this.stage_rst = 1;
+        } else {
+          this.setControls("bus=reg", Rs);
+        }
+        this.setControl(CTRL.ALU_TMP_WE);
+        break;
+      case 4:
+        this.setControl(CTRL.ALU_CS);
+        this.setControl([CTRL.ALU_OP4, CTRL.ALU_OP0], op);
+        this.stage_rst = 1;
+        break;
+    }
+  }
+
+  ALU2(irout: number) {
+    this.stage_max = 3;
+    if (this.stage == 3) {
+      this.setControl(CTRL.ALU_CS);
+      this.setControl([CTRL.ALU_OP4, CTRL.ALU_OP0], 0b01000 | getBits(irout, [5, 3]));
+      this.stage_rst = 1;
+    }
+  }
+
+  JMP(irout: number, flags?: number) {
+    this.stage_max = 8;
+    switch (this.stage) {
+      case 3:
+        if (!_.isUndefined(flags) && getBit(flags, getBits(irout, [5, 4])) != getBit(irout, 3)) {
+          this.setControls("pc+2");
+          this.stage_rst = 1;
+        } else this.setControls("mar=reg", REGSEL.PC);
+        break;
+      case 4:
+        // z = lo(address)
+        this.setControls("reg=mem", REGSEL.Z);
+        break;
+      case 5:
+        this.setControls("pc++");
+        break;
+      case 6:
+        this.setControls("mar=reg", REGSEL.PC);
+        break;
+      case 7:
+        // w = hi(address)
+        this.setControls("reg=mem", REGSEL.W);
+        break;
+      case 8:
+        // PC = WZ
+        this.setControls("bus=reg", REGSEL.WZ);
+        this.setControls("reg=bus", REGSEL.PC);
+        this.stage_rst = 1;
+        break;
+      default:
+        throw Error();
+    }
+  }
+
+  CALL(irout: number, flags?: number) {
+    // pass irout if conditional call
+    this.stage_max = 15;
+    switch (this.stage) {
+      case 3:
+        if (!_.isUndefined(flags) && getBit(flags, getBits(irout, [5, 4])) != getBit(irout, 3)) {
+          this.setControls("pc+2");
+          this.stage_rst = 1;
+        } else this.setControls("mar=reg", REGSEL.PC);
+        break;
+      case 4:
+        this.setControls("reg=mem", REGSEL.Z); // z = lo(address)
+        break;
+      case 5:
+        this.setControls("pc++");
+        break;
+      case 6:
+        this.setControls("mar=reg", REGSEL.PC);
+        break;
+      case 7:
+        this.setControls("reg=mem", REGSEL.W); // w = hi(address)
+        break;
+      case 8:
+        this.setControls("pc++");
+        break;
+      case 9:
+        this.setControls("sp--");
+        break;
+      case 10:
+        this.setControls("mar=reg", REGSEL.SP);
+        break;
+      case 11:
+        this.setControls("reg=mem", REGSEL.PCC); // save lo(PC) to stack
+        break;
+      case 12:
+        this.setControls("sp--");
+        break;
+      case 13:
+        this.setControls("mar=reg", REGSEL.SP);
+        break;
+      case 14:
+        this.setControls("reg=mem", REGSEL.PCP); // save hi(PC) to stack
+        break;
+      case 15:
+        this.setControls("bus=reg", REGSEL.WZ);
+        this.setControls("reg=bus", REGSEL.PC); // jump to address stored in WZ
+        this.stage_rst = 1;
+    }
+  }
+
+  RET(irout: number, flags?: number) {
+    this.stage_max = 15;
+    switch (this.stage) {
+      case 3:
+        if (!_.isUndefined(flags) && getBit(flags, getBits(irout, [5, 4])) != getBit(irout, 3)) {
+          this.stage_rst = 1;
+        } else this.setControls("mar=reg", REGSEL.SP);
+        break;
+      case 4:
+        this.setControls("reg=mem", REGSEL.W); // pop hi(ret address) from stack
+        break;
+      case 5:
+        this.setControls("sp++");
+        break;
+      case 6:
+        this.setControls("mar=reg", REGSEL.SP);
+        break;
+      case 7:
+        this.setControls("reg=mem", REGSEL.Z); // pop lo(ret address) from stack
+        break;
+      case 8:
+        this.setControls("sp++");
+        break;
+      case 9:
+        this.setControls("bus=reg", REGSEL.WZ);
+        this.setControls("reg=bus", REGSEL.PC);
+        this.stage_rst = 1;
+    }
+  }
+
+  OUT() {
+    this.stage_max = 3;
+    if (this.stage == 3) {
+      this.setControls("pc++");
+      this.setControl(CTRL.DISPLAY);
+      this.stage_rst = 1;
     }
   }
 
@@ -183,13 +379,13 @@ export class Controller {
         this.setControls("mar=reg", REGSEL.PC);
         break;
       case 4:
-        this.setControls("reg=ram[mar]", REGSEL.W);
+        this.setControls("reg=mem", REGSEL.W);
         break;
       case 5:
         this.setControls("mar=reg", REGSEL.HL);
         break;
       case 6:
-        this.setControls("ram[mar]=reg", REGSEL.W);
+        this.setControls("mem=reg", REGSEL.W);
         break;
       case 7:
         this.setControls("pc++");
@@ -240,17 +436,29 @@ export class Controller {
         this.setControl([CTRL.REG_WR_SEL4, CTRL.REG_WR_SEL0], REGSEL.PC);
         this.setControl([CTRL.REG_EXT1, CTRL.REG_EXT0], REGEXT.INC);
         break;
+      case "pc+2":
+        this.setControl([CTRL.REG_WR_SEL4, CTRL.REG_WR_SEL0], REGSEL.PC);
+        this.setControl([CTRL.REG_EXT1, CTRL.REG_EXT0], REGEXT.INC2);
+        break;
+      case "sp++":
+        this.setControl([CTRL.REG_WR_SEL4, CTRL.REG_WR_SEL0], REGSEL.SP);
+        this.setControl([CTRL.REG_EXT1, CTRL.REG_EXT0], REGEXT.INC);
+        break;
+      case "sp--":
+        this.setControl([CTRL.REG_WR_SEL4, CTRL.REG_WR_SEL0], REGSEL.SP);
+        this.setControl([CTRL.REG_EXT1, CTRL.REG_EXT0], REGEXT.DEC);
+        break;
       case "mar=reg":
         this.setControl([CTRL.REG_RD_SEL4, CTRL.REG_RD_SEL0], reg);
         this.setControl(CTRL.REG_OE);
         this.setControl(CTRL.MEM_MAR_WE);
         break;
-      case "reg=ram[mar]":
+      case "reg=mem":
         this.setControl(CTRL.MEM_OE);
         this.setControl([CTRL.REG_WR_SEL4, CTRL.REG_WR_SEL0], reg);
         this.setControl(CTRL.REG_WE);
         break;
-      case "ram[mar]=reg":
+      case "mem=reg":
         this.setControl([CTRL.REG_RD_SEL4, CTRL.REG_RD_SEL0], reg);
         this.setControl(CTRL.REG_OE);
         this.setControl(CTRL.MEM_WE);

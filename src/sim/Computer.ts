@@ -1,3 +1,4 @@
+import { localeOption } from "primereact/api";
 import { Alu } from "./Alu";
 import { Bus } from "./Bus";
 import { Clock } from "./Clock";
@@ -44,9 +45,42 @@ export class Computer {
       0x3e, 0x01,
       // mvi b, $0
       0x06, 0x00,
+
       // loop
       // out
-      0xd3,
+      0xd3, 0xff,
+
+      // mov c,a
+      0x4f,
+
+      // mov a,b
+      0x78,
+
+      // cpi $1
+      0xfe, 0x01,
+
+      // mov a,c
+      0x79,
+
+      // jz rotate_right
+      0xca, 0x17, 0x00,
+
+      // jnz rotate_left
+      0xc2, 0x20, 0x00,
+
+      // jmp loop
+      0xc3, 0x07, 0x00,
+
+      // rotate_right
+      // rar
+      0x1f,
+
+      // cpi $1
+      0xfe, 0x01,
+      // cz set_left
+      0xcc, 0x29, 0x00,
+      // jmp loop
+      0xc3, 0x07, 0x00,
     ]);
     this.ctrl.always(this.clk, this.rst, this.ir, this.alu); // decode ir => controls
   }
