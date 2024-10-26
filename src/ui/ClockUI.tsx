@@ -1,18 +1,27 @@
 import { Button } from "primereact/button";
+import { ButtonGroup } from "primereact/buttongroup";
 import { ComputerState } from "../sim/Computer";
+
+import { VscDebugStepOver, VscDebugStepInto, VscDebugRestart, VscDebugStepBack, VscDebugStart, VscDebugStepOut } from "react-icons/vsc";
+
+const pt = { root: { style: { padding: "0.3em 0.6em" } } };
 
 export const ClockUI = ({
   compState,
   onRewind,
   onStepBack,
-  onStepForward,
-  onFastForward,
+  onStepInto,
+  onStepOut,
+  onStepOver,
+  onPlay,
 }: {
   compState: ComputerState;
   onRewind: () => void;
   onStepBack: () => void;
-  onStepForward: () => void;
-  onFastForward: () => void;
+  onStepInto: () => void;
+  onStepOut: () => void;
+  onStepOver: () => void;
+  onPlay: () => void;
 }) => {
   return (
     <div className="flex flex-column p-2 gap-2 bg-yellow-100">
@@ -28,10 +37,14 @@ export const ClockUI = ({
         </div>
       </div>
       <div className="flex flex-row gap-1">
-        <Button label="<<" onClick={onRewind} size="small"></Button>
-        <Button label="<" onClick={onStepBack} size="small"></Button>
-        <Button label=">" onClick={onStepForward} size="small"></Button>
-        <Button label=">>" onClick={onFastForward} size="small"></Button>
+        <ButtonGroup style={{ backgroundColor: "#f9f9f9" }}>
+          <Button pt={pt} icon={() => <VscDebugRestart />} onClick={onRewind} size="small"></Button>
+          <Button pt={pt} icon={() => <VscDebugStepBack />} onClick={onStepBack} size="small"></Button>
+          <Button pt={pt} icon={() => <VscDebugStepInto />} onClick={onStepInto} size="small"></Button>
+          <Button pt={pt} icon={() => <VscDebugStepOut />} onClick={onStepOut} size="small"></Button>
+          <Button pt={pt} icon={() => <VscDebugStepOver />} onClick={onStepOver} size="small"></Button>
+          <Button pt={pt} icon={() => <VscDebugStart />} onClick={onPlay} size="small"></Button>
+        </ButtonGroup>
       </div>
     </div>
   );

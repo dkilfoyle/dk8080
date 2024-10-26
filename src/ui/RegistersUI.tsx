@@ -29,8 +29,12 @@ const regnames: Record<number, string> = {
 const extnames = ["NA", "INC", "DEC", "INC2"];
 
 const getClass = (ctrl: { rd: string; wr: string; ext: string; we: number; clk: string; oe: number }, s: ComputerState, x: string[]) => {
-  if (ctrl.we == 1 && ctrl.clk == "tick" && x.includes(ctrl.wr)) return `bg-${getBusColor(s)}-300`;
-  if (ctrl.ext != "NA" && ctrl.clk == "tick" && x.includes(ctrl.wr)) return `bg-blue-300`;
+  if (ctrl.we == 1 && x.includes(ctrl.wr)) {
+    return ctrl.clk == "tick" ? `bg-${getBusColor(s)}-300` : "outline";
+  }
+  if (ctrl.ext != "NA" && x.includes(ctrl.wr)) {
+    return ctrl.clk == "tick" ? `bg-blue-300` : "outline";
+  }
   if (ctrl.oe == 1 && x.includes(ctrl.rd)) return "bg-blue-300";
 };
 

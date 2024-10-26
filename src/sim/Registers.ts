@@ -183,17 +183,17 @@ export class Registers {
       this.registers.fill(0);
     } else if (clk.isTick) {
       if (ctrl.reg_ext > 0) {
-        console.log("CTRL REG EXT", ctrl.reg_wr_sel, ctrl.reg_ext);
+        // console.log("CTRL REG EXT", ctrl.reg_wr_sel, ctrl.reg_ext);
         this.ext(ctrl.reg_wr_sel, ctrl.reg_ext);
       } else if (ctrl.reg_we) {
         this.write(ctrl.reg_wr_sel, bus.value);
-        console.log(`regs.tick writing bus => reg(${ctrl.reg_wr_sel}) = ${bus.value}`);
-        this.dump();
+        // console.log(`regs.tick writing bus => reg(${ctrl.reg_wr_sel}) = ${bus.value}`);
+        // this.dump();
       }
     }
     // tick or tock
     this.out = this.read(ctrl.reg_rd_sel);
-    console.log(`regs.* out = read(${ctrl.reg_rd_sel}) = ${this.out}`);
+    // console.log(`regs.* out = read(${ctrl.reg_rd_sel}) = ${this.out}`);
   }
 
   dump() {

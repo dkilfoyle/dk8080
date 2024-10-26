@@ -2,6 +2,8 @@ import _ from "lodash";
 import { getBit } from "../sim/Bits";
 import { ComputerState } from "../sim/Computer";
 import clsx from "clsx";
+import { getTStates } from "../sim/InstructionRegister";
+import { useMemo } from "react";
 
 const names = [
   "HLT",
@@ -39,12 +41,16 @@ const names = [
 ].reverse();
 
 export const CtrlUI = ({ compState }: { compState: ComputerState }) => {
+  const numStages = useMemo(() => {
+    if (compState.stage == 0 || (compState.stage == 1 && compState.clkState == "tock")) return 2;
+    return getTStates(compState.ir);
+  }, [compState.clkState, compState.ir, compState.stage]);
   return (
     <div className="flex flex-column gap-2">
       <div className="flex gap-2">
         <span className="w-2rem">ALU</span>
         {_.range(31, 17, -1).map((i) => (
-          <div className="flex flex-column w-3rem bg-purple-100">
+          <div className="flex flex-column w-3rem bg-purple-100" key={`alu-${i}`}>
             <span>{i}</span>
             <span className="text-xs">{names[i]}</span>
             <span className={getBit(compState.ctrl_word, i) ? "bg-purple-300" : "bg-purple-100"}>{getBit(compState.ctrl_word, i)}</span>
@@ -54,7 +60,7 @@ export const CtrlUI = ({ compState }: { compState: ComputerState }) => {
       <div className="flex gap-2">
         <span className="w-2rem">REG</span>
         {_.range(17, 3, -1).map((i) => (
-          <div className="flex flex-column w-3rem bg-blue-100">
+          <div className="flex flex-column w-3rem bg-blue-100" key={`reg-${i}`}>
             <span>{i}</span>
             <span className="text-xs">{names[i]}</span>
             <span className={getBit(compState.ctrl_word, i) ? "bg-blue-300" : "bg-blue-100"}>{getBit(compState.ctrl_word, i)}</span>
@@ -64,7 +70,7 @@ export const CtrlUI = ({ compState }: { compState: ComputerState }) => {
       <div className="flex gap-2">
         <span className="w-2rem">MEM</span>
         {_.range(3, -1, -1).map((i) => (
-          <div className="flex flex-column w-3rem bg-red-100">
+          <div className="flex flex-column w-3rem bg-red-100" key={`mem-${i}`}>
             <span>{i}</span>
             <span className="text-xs">{names[i]}</span>
             <span className={getBit(compState.ctrl_word, i) ? "bg-red-300" : "bg-red-100"}>{getBit(compState.ctrl_word, i)}</span>
@@ -73,8 +79,10 @@ export const CtrlUI = ({ compState }: { compState: ComputerState }) => {
       </div>
       <div className="flex gap-2">
         <span className="w-2rem">T</span>
-        {_.range(0, compState.stage_max + 1).map((i) => (
-          <span className={clsx(i == compState.stage ? "bg-green-300" : "bg-gray-300", "w-3rem text-center")}>{i}</span>
+        {_.range(0, numStages + 1).map((i) => (
+          <span className={clsx(i == compState.stage ? compState.clkState : "bg-gray-300", "w-3rem text-center")} key={`t-${i}`}>
+            {i}
+          </span>
         ))}
       </div>
     </div>

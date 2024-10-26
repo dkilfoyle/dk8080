@@ -1,8 +1,7 @@
-import { localeOption } from "primereact/api";
 import { Alu } from "./Alu";
 import { Bus } from "./Bus";
 import { Clock } from "./Clock";
-import { Controller } from "./Controller";
+import { Controller, CTRL } from "./Controller";
 import { InstructionRegister } from "./InstructionRegister";
 import { Memory } from "./Memory";
 import { Registers } from "./Registers";
@@ -37,60 +36,26 @@ export class Computer {
   out = 0;
   states: ComputerState[] = [];
 
-  constructor() {
-    this.mem.load([
-      // lxi sp, $f0
-      0x31, 0xf0, 0x00,
-      // mvi a, $1
-      0x3e, 0x01,
-      // mvi b, $0
-      0x06, 0x00,
-
-      // loop
-      // out
-      0xd3, 0xff,
-
-      // mov c,a
-      0x4f,
-
-      // mov a,b
-      0x78,
-
-      // cpi $1
-      0xfe, 0x01,
-
-      // mov a,c
-      0x79,
-
-      // jz rotate_right
-      0xca, 0x17, 0x00,
-
-      // jnz rotate_left
-      0xc2, 0x20, 0x00,
-
-      // jmp loop
-      0xc3, 0x07, 0x00,
-
-      // rotate_right
-      // rar
-      0x1f,
-
-      // cpi $1
-      0xfe, 0x01,
-      // cz set_left
-      0xcc, 0x29, 0x00,
-      // jmp loop
-      0xc3, 0x07, 0x00,
-    ]);
+  constructor(program: number[]) {
+    this.mem.load(program);
     this.ctrl.always(this.clk, this.rst, this.ir, this.alu); // decode ir => controls
+  }
+
+  run(max = 1000) {
+    let i = 0;
+    while (i < max && !(this.ctrl.getControl(CTRL.HLT) && !this.ctrl.getControl(CTRL.REG_EXT0))) {
+      this.always();
+      i++;
+    }
   }
 
   always() {
     if (this.rst) {
       this.out = 0;
       this.ctrl.always(this.clk, this.rst, this.ir, this.alu); // decode ir => controls
-    } else if (this.clk.isTick) {
+    } else if (this.clk.isTick && this.ctrl.hlt && this.ctrl.reg_ext == 1) {
       this.out = this.alu.out;
+      console.log(`Out @ clk ${this.clk.count} = ${this.out} / ${this.out.toString(2)}`);
     }
 
     // stages 0-2 load ir with ram[pc] and increment pc

@@ -117,12 +117,12 @@ export class Alu {
             this.acc--;
             break;
         }
-        if (ctrl.alu_a_store) {
-          this.act = this.acc;
-        }
-        if (ctrl.alu_tmp_we) {
-          this.tmp = bus.value;
-        }
+      }
+      if (ctrl.alu_a_store) {
+        this.act = this.acc;
+      }
+      if (ctrl.alu_tmp_we) {
+        this.tmp = bus.value;
       }
     } else if (clk.isTock) {
       // update flags

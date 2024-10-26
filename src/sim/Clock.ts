@@ -9,7 +9,7 @@ export class Clock {
   }
   always(ctrl: Controller) {
     if (!ctrl.hlt) this.count += 0.5;
-    console.log(`clk.* ${this.count} ${this.isTick ? "tick" : ""} ${this.isTock ? "tock" : ""}`);
+    // console.log(`clk.* ${this.count} ${this.isTick ? "tick" : ""} ${this.isTock ? "tock" : ""}`);
   }
   get isTick() {
     return this.count % 1 == 0;

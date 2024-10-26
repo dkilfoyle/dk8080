@@ -40,3 +40,18 @@
 .read-the-docs {
   color: #888;
 }
+
+.tock {
+  background: rgb(118, 219, 155);
+  background: linear-gradient(90deg, rgba(118, 219, 155, 1) 0%, rgba(118, 219, 155, 1) 50%, rgba(224, 224, 224, 1) 50%);
+}
+
+.tick {
+  background: rgb(224, 224, 224);
+  background: linear-gradient(90deg, rgba(224, 224, 224, 1) 0%, rgba(224, 224, 224, 1) 50%, rgba(118, 219, 155, 1) 50%);
+}
+
+.outline {
+  outline: 1px solid #00000040;
+  outline-style: solid;
+}

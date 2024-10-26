@@ -15,58 +15,100 @@ import { ClockUI } from "./ui/ClockUI";
 
 function App() {
   const [statei, setStatei] = useState(0);
-  const comp = new Computer();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
-  comp.always();
+
+  const comp = useMemo(() => {
+    const prog = [
+      // lxi sp, $f0
+      0x31, 0xf0, 0x00,
+      // mvi a, $1
+      0x3e, 0x01,
+      // mvi b, $0
+      0x06, 0x00,
+
+      // loop
+      // out
+      0xd3, 0xff,
+
+      // mov c,a
+      0x4f,
+
+      // mov a,b
+      0x78,
+
+      // cpi $1
+      0xfe, 0x01,
+
+      // mov a,c
+      0x79,
+
+      // jz rotate_right
+      0xca, 0x17, 0x00,
+
+      // jnz rotate_left
+      0xc2, 0x20, 0x00,
+
+      // jmp loop
+      0xc3, 0x07, 0x00,
+
+      // rotate_right
+      // rar
+      0x1f,
+
+      // cpi $1
+      0xfe, 0x01,
+
+      // cz set_left
+      0xcc, 0x29, 0x00,
+
+      // jmp loop
+      0xc3, 0x07, 0x00,
+
+      0x17,
+
+      0xfe, 0x80,
+
+      0xcc, 0x2c, 0x00,
+
+      0xc3, 0x07, 0x00,
+
+      0x06, 0x00,
+
+      0xc9,
+
+      0x06, 0x01,
+
+      0xc9,
+
+      0x76,
+    ];
+    const comp = new Computer(prog);
+    comp.run();
+    return comp;
+  }, []);
 
   const curState = useMemo(() => {
     return comp.states[statei];
   }, [comp.states, statei]);
 
   const rewind = () => setStatei(0);
-  const stepBack = () => setStatei((cur) => cur - 1);
-  const stepForward = () => setStatei((cur) => cur + 1);
-  const fastForward = () => setStatei(comp.states.length - 1);
+  const stepBack = () =>
+    setStatei((cur) => {
+      for (let i = cur - 1; i > 0; i--) {
+        if (comp.states[i].stage == 0) return i;
+      }
+      return cur;
+    });
+
+  const stepInto = () => setStatei((cur) => cur - 1);
+  const stepOut = () => setStatei((cur) => cur + 1);
+  const stepOver = () =>
+    setStatei((cur) => {
+      for (let i = cur + 1; i < comp.states.length - 1; i++) {
+        if (comp.states[i].stage == 3 && comp.states[i].clkState == "tock") return i;
+      }
+      return cur;
+    });
+  const play = () => setStatei(comp.states.length - 1);
 
   return (
     <PrimeReactProvider>
@@ -79,8 +121,10 @@ function App() {
               compState={curState}
               onRewind={rewind}
               onStepBack={stepBack}
-              onStepForward={stepForward}
-              onFastForward={fastForward}></ClockUI>
+              onStepInto={stepInto}
+              onStepOut={stepOut}
+              onStepOver={stepOver}
+              onPlay={play}></ClockUI>
           </div>
           <div className="flex flex-column gap-3">
             <BusUI compState={curState}></BusUI>

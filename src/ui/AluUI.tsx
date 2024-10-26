@@ -44,6 +44,7 @@ export const AluUI = ({ compState }: { compState: ComputerState }) => {
           <span
             className={clsx({
               [`bg-${getBusColor(compState)}-300`]: isOn(compState.ctrl_word, CTRL.ALU_A_WE) && compState.clkState == "tick",
+              outline: isOn(compState.ctrl_word, CTRL.ALU_A_WE) && compState.clkState == "tock",
               "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_OE),
             })}>
             {fprint(compState.alu_acc, format)}
@@ -51,6 +52,7 @@ export const AluUI = ({ compState }: { compState: ComputerState }) => {
           <span
             className={clsx({
               [`bg-${getBusColor(compState)}-300`]: isOn(compState.ctrl_word, CTRL.ALU_TMP_WE) && compState.clkState == "tick",
+              outline: isOn(compState.ctrl_word, CTRL.ALU_TMP_WE) && compState.clkState == "tock",
             })}>
             {fprint(compState.alu_tmp, format)}
           </span>
@@ -58,17 +60,27 @@ export const AluUI = ({ compState }: { compState: ComputerState }) => {
           <span
             className={clsx({
               [`bg-${getBusColor(compState)}-300`]: isOn(compState.ctrl_word, CTRL.ALU_FLAGS_WE) && compState.clkState == "tick",
+              outline: isOn(compState.ctrl_word, CTRL.ALU_FLAGS_WE) && compState.clkState == "tock",
               "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_FLAGS_OE),
             })}>
             {fprint(compState.alu_flg, format)}
           </span>
-          <span>{fprint(compState.alu_act, format)}</span>
+          <span
+            className={clsx({
+              ["bg-purple-300"]:
+                isOn(compState.ctrl_word, CTRL.ALU_CS) && getBits(compState.ir, [5, 3]) == 0b111 && compState.clkState == "tick",
+              outline: isOn(compState.ctrl_word, CTRL.ALU_CS) && getBits(compState.ir, [5, 3]) == 0b111 && compState.clkState == "tock",
+            })}>
+            {fprint(compState.alu_act, format)}
+          </span>
         </div>
         <div className="flex flex-column text-right w-2rem">
           <span>OP</span>
         </div>
         <div className="flex flex-column text-right w-5rem">
-          <span className="pr-2">{opnames[getBits(compState.ctrl_word, [CTRL.ALU_OP4, CTRL.ALU_OP0])]}</span>
+          <span className={clsx({ "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_CS) }, "pr-2")}>
+            {opnames[getBits(compState.ctrl_word, [CTRL.ALU_OP4, CTRL.ALU_OP0])]}
+          </span>
           <span className={clsx({ "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_FLAGS_WE) }, "pr-2")}>FLG_WE</span>
           <span className={clsx({ "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_A_WE) }, "pr-2")}>A_WE</span>
           <span className={clsx({ "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_TMP_WE) }, "pr-2")}>TMP_WE</span>

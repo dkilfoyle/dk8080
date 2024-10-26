@@ -6,7 +6,6 @@ import { InstructionRegister } from "./InstructionRegister";
 import { REGEXT, REGSEL } from "./Registers";
 
 export enum CTRL {
-  DISPLAY = 32,
   HLT = 31,
   ALU_CS = 30,
   ALU_FLAGS_WE = 29,
@@ -94,6 +93,12 @@ export class Controller {
         case ir8.match(/0[0-7]+6/) != null:
           this.MVI_Rd_d8(ir.out);
           break;
+        case ir8 == "064":
+          this.INRDCR_M(ir.out);
+          break;
+        case ir8.match(/0[0-7]+4/) != null && ir8.match(/0[0-7]+5/) != null:
+          this.INRDCR_Rs(ir.out);
+          break;
         case ir8 == "001":
         case ir8 == "021":
         case ir8 == "041":
@@ -101,7 +106,10 @@ export class Controller {
           this.LXI_Rd_d16(ir.out);
           break;
         case ir8.match(/0[0-7]+7/) != null:
-          this.ALUSecondary(ir.out);
+          this.ALU2(ir.out);
+          break;
+        case ir8.match(/3[0-7]+6/) != null:
+          this.ALU_d8(ir.out);
           break;
         case ir8.match(/3[0-7]+2/) != null:
           this.JMP(ir.out, alu.flags);
@@ -121,12 +129,86 @@ export class Controller {
         case ir8 == "311":
           this.RET(ir.out);
           break;
-        case ir8 == "0323":
+        case ir8 == "323":
           this.OUT();
-        // default:
-        //   throw Error();
+          break;
+        default:
+          console.error(`opcode 0o${ir8} / 0x${ir.out.toString(16)} not implemented`);
       }
     }
+  }
+
+  INRDCR_M(irout: number) {
+    this.stage_max = 6;
+    const op = getBit(irout, 0);
+    switch (this.stage) {
+      case 3:
+        this.setControls("mar=reg", REGSEL.HL);
+        break;
+      case 4:
+        this.setControl(CTRL.MEM_OE);
+        this.setControl(CTRL.ALU_A_STORE);
+        this.setControl(CTRL.ALU_A_WE);
+        break;
+      case 5:
+        this.setControl(CTRL.ALU_CS);
+        this.setControl([CTRL.ALU_OP4, CTRL.ALU_OP0], 0b1000 | op);
+        break;
+      case 6:
+        this.setControl(CTRL.ALU_OE);
+        this.setControl(CTRL.ALU_A_RESTORE);
+        this.setControl(CTRL.MEM_WE);
+        this.stage_rst = 1;
+        break;
+      default:
+        throw Error();
+    }
+  }
+
+  INRDCR_Rs(irout: number) {
+    this.stage_max = 5;
+    const op = getBit(irout, 0);
+    const Rs = getBits(irout, [5, 3]);
+    switch (this.stage) {
+      case 3:
+        if (Rs == 0b111) {
+          this.setControl(CTRL.ALU_CS);
+          this.setControl([CTRL.ALU_OP4, CTRL.ALU_OP0], 0b10000);
+          this.stage_rst = 1;
+        } else {
+          this.setControls("bus=reg", Rs);
+          this.setControl(CTRL.ALU_A_STORE);
+          this.setControl(CTRL.ALU_A_WE);
+        }
+        break;
+      case 4:
+        this.setControl(CTRL.ALU_CS);
+        this.setControl([CTRL.ALU_OP4, CTRL.ALU_OP0], 0b1000 | op);
+        break;
+      case 5:
+        this.setControl(CTRL.ALU_OE);
+        this.setControl(CTRL.ALU_A_RESTORE);
+        this.setControls("reg=bus", Rs);
+        this.stage_rst = 1;
+        break;
+      default:
+        throw Error();
+    }
+  }
+
+  INXDCX(irout: number) {
+    this.stage_max = 3;
+    const op = getBit(irout, 0);
+    const Rs = getBits(irout, [5, 4]);
+    if (this.stage == 3) {
+      if (Rs == 0b11) {
+        this.setControl([CTRL.REG_WR_SEL4, CTRL.REG_WR_SEL0], REGSEL.SP);
+      } else {
+        this.setControl([CTRL.REG_WR_SEL4, CTRL.REG_WR_SEL0], 0b10000 | (op << 1));
+      }
+      this.setControl([CTRL.REG_EXT1, CTRL.REG_EXT1], op == 1 ? 0b10 : 0b01);
+      this.stage_rst = 1;
+    } else throw Error();
   }
 
   ALU_M(irout: number) {
@@ -166,6 +248,25 @@ export class Controller {
         this.setControl([CTRL.ALU_OP4, CTRL.ALU_OP0], op);
         this.stage_rst = 1;
         break;
+    }
+  }
+
+  ALU_d8(irout: number) {
+    this.stage_max = 5;
+    const op = getBits(irout, [5, 3]);
+    switch (this.stage) {
+      case 3:
+        this.setControls("mar=reg", REGSEL.PC);
+        break;
+      case 4:
+        this.setControl(CTRL.MEM_OE);
+        this.setControl(CTRL.ALU_TMP_WE);
+        break;
+      case 5:
+        this.setControl(CTRL.ALU_CS);
+        this.setControl([CTRL.ALU_OP4, CTRL.ALU_OP0], op);
+        this.setControls("pc++");
+        this.stage_rst = 1;
     }
   }
 
@@ -296,9 +397,9 @@ export class Controller {
     this.stage_max = 3;
     if (this.stage == 3) {
       this.setControls("pc++");
-      this.setControl(CTRL.DISPLAY);
+      //this.setControl(CTRL.HLT); // out is combination of HLT and REG_EXT0
       this.stage_rst = 1;
-    }
+    } else throw Error();
   }
 
   MOV_Rd_M(irout: number) {
@@ -490,10 +591,9 @@ export class Controller {
     }
   }
 
-  get display() {
-    return isOn(this.ctrl_word, CTRL.DISPLAY);
+  get hlt() {
+    return isOn(this.ctrl_word, CTRL.HLT);
   }
-  get hlt() {}
   get alu_cs() {
     return isOn(this.ctrl_word, CTRL.ALU_CS);
   }
