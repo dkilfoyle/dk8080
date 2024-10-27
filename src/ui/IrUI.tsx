@@ -1,6 +1,6 @@
 import { Button } from "primereact/button";
 import { useMemo, useState } from "react";
-import { fprint, getBusColor, getNextFormat } from "./utils";
+import { anim, fprint, getBusColor, getNextFormat } from "./utils";
 import { ComputerState } from "../sim/Computer";
 import clsx from "clsx";
 import { isOn } from "../sim/Bits";
@@ -256,7 +256,7 @@ export const IrUI = ({ compState }: { compState: ComputerState }) => {
         </div>
         <div className="flex flex-column text-right w-6rem">
           <span
-            className={clsx({
+            className={clsx(anim, {
               [`bg-${getBusColor(compState)}-300`]: ctrl.ir_we && compState.clkState == "tick",
             })}>
             {fprint(compState.ir, format)}
@@ -265,7 +265,7 @@ export const IrUI = ({ compState }: { compState: ComputerState }) => {
         </div>
         <div className="flex flex-auto"></div>
         <div className="flex flex-column text-right w-4rem">
-          <span className={clsx({ "bg-green-300": ctrl.ir_we }, "pr-2")}>IR_WE</span>
+          <span className={clsx({ "bg-green-300": ctrl.ir_we }, "pr-2", anim)}>IR_WE</span>
         </div>
       </div>
     </div>

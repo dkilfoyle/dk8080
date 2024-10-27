@@ -1,6 +1,6 @@
 import { Button } from "primereact/button";
 import { useState } from "react";
-import { fprint, getBusColor } from "./utils";
+import { anim, fprint, getBusColor } from "./utils";
 import { getBits, isOn } from "../sim/Bits";
 import { ComputerState } from "../sim/Computer";
 import { clsx } from "clsx";
@@ -42,7 +42,7 @@ export const AluUI = ({ compState }: { compState: ComputerState }) => {
         </div>
         <div className="flex flex-column text-center w-3rem">
           <span
-            className={clsx({
+            className={clsx(anim, {
               [`bg-${getBusColor(compState)}-300`]: isOn(compState.ctrl_word, CTRL.ALU_A_WE) && compState.clkState == "tick",
               outline: isOn(compState.ctrl_word, CTRL.ALU_A_WE) && compState.clkState == "tock",
               "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_OE),
@@ -50,7 +50,7 @@ export const AluUI = ({ compState }: { compState: ComputerState }) => {
             {fprint(compState.alu_acc, format)}
           </span>
           <span
-            className={clsx({
+            className={clsx(anim, {
               [`bg-${getBusColor(compState)}-300`]: isOn(compState.ctrl_word, CTRL.ALU_TMP_WE) && compState.clkState == "tick",
               outline: isOn(compState.ctrl_word, CTRL.ALU_TMP_WE) && compState.clkState == "tock",
             })}>
@@ -58,7 +58,7 @@ export const AluUI = ({ compState }: { compState: ComputerState }) => {
           </span>
           <span>{fprint(compState.alu_carry, format)}</span>
           <span
-            className={clsx({
+            className={clsx(anim, {
               [`bg-${getBusColor(compState)}-300`]: isOn(compState.ctrl_word, CTRL.ALU_FLAGS_WE) && compState.clkState == "tick",
               outline: isOn(compState.ctrl_word, CTRL.ALU_FLAGS_WE) && compState.clkState == "tock",
               "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_FLAGS_OE),
@@ -66,7 +66,7 @@ export const AluUI = ({ compState }: { compState: ComputerState }) => {
             {fprint(compState.alu_flg, format)}
           </span>
           <span
-            className={clsx({
+            className={clsx(anim, {
               ["bg-purple-300"]:
                 isOn(compState.ctrl_word, CTRL.ALU_CS) && getBits(compState.ir, [5, 3]) == 0b111 && compState.clkState == "tick",
               outline: isOn(compState.ctrl_word, CTRL.ALU_CS) && getBits(compState.ir, [5, 3]) == 0b111 && compState.clkState == "tock",
@@ -81,11 +81,11 @@ export const AluUI = ({ compState }: { compState: ComputerState }) => {
           <span className={clsx({ "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_CS) }, "pr-2")}>
             {opnames[getBits(compState.ctrl_word, [CTRL.ALU_OP4, CTRL.ALU_OP0])]}
           </span>
-          <span className={clsx({ "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_FLAGS_WE) }, "pr-2")}>FLG_WE</span>
-          <span className={clsx({ "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_A_WE) }, "pr-2")}>A_WE</span>
-          <span className={clsx({ "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_TMP_WE) }, "pr-2")}>TMP_WE</span>
-          <span className={clsx({ "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_OE) }, "pr-2")}>OE</span>
-          <span className={clsx({ "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_FLAGS_OE) }, "pr-2")}>FLG_OE</span>
+          <span className={clsx(anim, { "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_FLAGS_WE) }, "pr-2")}>FLG_WE</span>
+          <span className={clsx(anim, { "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_A_WE) }, "pr-2")}>A_WE</span>
+          <span className={clsx(anim, { "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_TMP_WE) }, "pr-2")}>TMP_WE</span>
+          <span className={clsx(anim, { "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_OE) }, "pr-2")}>OE</span>
+          <span className={clsx(anim, { "bg-purple-300": isOn(compState.ctrl_word, CTRL.ALU_FLAGS_OE) }, "pr-2")}>FLG_OE</span>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { fprint, getBusColor } from "./utils";
+import { anim, fprint, getBusColor } from "./utils";
 import { Button } from "primereact/button";
 import { getBits, isOn } from "../sim/Bits";
 import { ComputerState } from "../sim/Computer";
@@ -66,20 +66,20 @@ export const RegistersUI = ({ compState }: { compState: ComputerState }) => {
           <span>SP</span>
         </div>
         <div className="flex flex-column text-center w-2rem">
-          <span className={getClass(ctrl, compState, ["B", "BC"])}>{fprint(compState.regs[0], format)}</span>
-          <span className={getClass(ctrl, compState, ["D", "DE"])}>{fprint(compState.regs[2], format)}</span>
-          <span className={getClass(ctrl, compState, ["H", "HL"])}>{fprint(compState.regs[4], format)}</span>
-          <span className={getClass(ctrl, compState, ["W", "WZ"])}>{fprint(compState.regs[6], format)}</span>
-          <span className={getClass(ctrl, compState, ["hi(PC)", "PC"])}>{fprint(compState.regs[8], format)}</span>
-          <span className={getClass(ctrl, compState, ["hi(SP)", "SP"])}>{fprint(compState.regs[10], format)}</span>
+          <span className={anim + " " + getClass(ctrl, compState, ["B", "BC"])}>{fprint(compState.regs[0], format)}</span>
+          <span className={anim + " " + getClass(ctrl, compState, ["D", "DE"])}>{fprint(compState.regs[2], format)}</span>
+          <span className={anim + " " + getClass(ctrl, compState, ["H", "HL"])}>{fprint(compState.regs[4], format)}</span>
+          <span className={anim + " " + getClass(ctrl, compState, ["W", "WZ"])}>{fprint(compState.regs[6], format)}</span>
+          <span className={anim + " " + getClass(ctrl, compState, ["hi(PC)", "PC"])}>{fprint(compState.regs[8], format)}</span>
+          <span className={anim + " " + getClass(ctrl, compState, ["hi(SP)", "SP"])}>{fprint(compState.regs[10], format)}</span>
         </div>
         <div className="flex flex-column text-center w-2rem">
-          <span className={getClass(ctrl, compState, ["C", "BC"])}>{fprint(compState.regs[1], format)}</span>
-          <span className={getClass(ctrl, compState, ["E", "DE"])}>{fprint(compState.regs[3], format)}</span>
-          <span className={getClass(ctrl, compState, ["L", "HL"])}>{fprint(compState.regs[5], format)}</span>
-          <span className={getClass(ctrl, compState, ["Z", "WZ"])}>{fprint(compState.regs[7], format)}</span>
-          <span className={getClass(ctrl, compState, ["lo(PC)", "PC"])}>{fprint(compState.regs[9], format)}</span>
-          <span className={getClass(ctrl, compState, ["lo(SP)", "SP"])}>{fprint(compState.regs[11], format)}</span>
+          <span className={anim + " " + getClass(ctrl, compState, ["C", "BC"])}>{fprint(compState.regs[1], format)}</span>
+          <span className={anim + " " + getClass(ctrl, compState, ["E", "DE"])}>{fprint(compState.regs[3], format)}</span>
+          <span className={anim + " " + getClass(ctrl, compState, ["L", "HL"])}>{fprint(compState.regs[5], format)}</span>
+          <span className={anim + " " + getClass(ctrl, compState, ["Z", "WZ"])}>{fprint(compState.regs[7], format)}</span>
+          <span className={anim + " " + getClass(ctrl, compState, ["lo(PC)", "PC"])}>{fprint(compState.regs[9], format)}</span>
+          <span className={anim + " " + getClass(ctrl, compState, ["lo(SP)", "SP"])}>{fprint(compState.regs[11], format)}</span>
         </div>
         <div className="flex flex-column text-right w-3rem">
           <span>RD</span>
@@ -87,11 +87,11 @@ export const RegistersUI = ({ compState }: { compState: ComputerState }) => {
           <span>EXT</span>
         </div>
         <div className="flex flex-column text-right w-3rem">
-          <span className="pr-2">{ctrl.rd}</span>
-          <span className="pr-2">{ctrl.wr}</span>
-          <span className={clsx({ "bg-blue-300": ctrl.ext != "NA" }, "pr-2")}>{ctrl.ext}</span>
-          <span className={clsx({ "bg-blue-300": isOn(compState.ctrl_word, 5) }, "pr-2")}>OE</span>
-          <span className={clsx({ "bg-blue-300": isOn(compState.ctrl_word, 4) }, "pr-2")}>WE</span>
+          <span className={"pr-2 " + anim}>{ctrl.rd}</span>
+          <span className={"pr-2 " + anim}>{ctrl.wr}</span>
+          <span className={clsx(anim, { "bg-blue-300": ctrl.ext != "NA" }, "pr-2")}>{ctrl.ext}</span>
+          <span className={clsx(anim, { "bg-blue-300": isOn(compState.ctrl_word, 5) }, "pr-2")}>OE</span>
+          <span className={clsx(anim, { "bg-blue-300": isOn(compState.ctrl_word, 4) }, "pr-2")}>WE</span>
         </div>
       </div>
     </div>

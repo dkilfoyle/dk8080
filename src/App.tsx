@@ -24,6 +24,8 @@ import {
   VscDebugStepOver,
   VscDebugStart,
   VscDebugPause,
+  VscDebugAll,
+  VscRunAll,
 } from "react-icons/vsc";
 
 const prog = [
@@ -96,6 +98,8 @@ const pt = { root: { style: { padding: "0.3em 0.6em" } } };
 function App() {
   const [statei, setStatei] = useState(0);
   const [isRun, setIsRun] = useState(false);
+  const [runSpeed, setRunSpeed] = useState(200);
+  const [runSteppingMode, setRunSteppingMode] = useState(0);
 
   const comp = useMemo(() => {
     const comp = new Computer(prog);
@@ -107,31 +111,34 @@ function App() {
     return comp.states[statei];
   }, [comp.states, statei]);
 
-  const rewind = () => setStatei(0);
-  const stepBack = () =>
-    setStatei((cur) => {
-      for (let i = cur - 1; i > 0; i--) {
-        if (comp.states[i].stage == 3 && comp.states[i].clkState == "tock") return i;
-      }
-      return cur;
-    });
-
-  const stepInto = () => setStatei((cur) => Math.max(cur - 1, 0));
-  const stepOut = () => setStatei((cur) => Math.min(cur + 1, comp.states.length - 1));
-  const stepOver = () =>
-    setStatei((cur) => {
-      for (let i = cur + 1; i < comp.states.length - 1; i++) {
-        if (comp.states[i].stage == 3 && comp.states[i].clkState == "tock") return i;
-      }
-      return cur;
-    });
-  const play = () => setIsRun((cur) => !cur);
+  const stepBack = (cur: number) => {
+    for (let i = cur - 1; i > 0; i--) {
+      if (comp.states[i].stage == 3 && comp.states[i].clkState == "tock") return i;
+    }
+    return cur;
+  };
+  const stepInto = (cur: number) => Math.max(cur - 1, 0);
+  const stepOut = (cur: number) => Math.min(cur + 1, comp.states.length - 1);
+  const stepOver = (cur: number) => {
+    for (let i = cur + 1; i < comp.states.length - 1; i++) {
+      if (comp.states[i].stage == 3 && comp.states[i].clkState == "tock") return i;
+    }
+    return cur;
+  };
+  const playOut = () => {
+    setRunSteppingMode(0);
+    setIsRun((cur) => !cur);
+  };
+  const playOver = () => {
+    setRunSteppingMode(1);
+    setIsRun((cur) => !cur);
+  };
 
   useInterval(
     () => {
-      setStatei((cur) => Math.min(cur + 1, comp.states.length - 1));
+      setStatei((cur) => (runSteppingMode == 0 ? stepOut(cur) : stepOver(cur)));
     },
-    200,
+    runSpeed,
     isRun
   );
 
@@ -145,12 +152,13 @@ function App() {
             <ClockUI compState={curState}>
               <div className="flex flex-row gap-1">
                 <ButtonGroup style={{ backgroundColor: "#f9f9f9" }}>
-                  <Button pt={pt} icon={() => <VscDebugRestart />} onClick={rewind} size="small"></Button>
-                  <Button pt={pt} icon={() => <VscDebugStepBack />} onClick={stepBack} size="small"></Button>
-                  <Button pt={pt} icon={() => <VscDebugStepInto />} onClick={stepInto} size="small"></Button>
-                  <Button pt={pt} icon={() => <VscDebugStepOut />} onClick={stepOut} size="small"></Button>
-                  <Button pt={pt} icon={() => <VscDebugStepOver />} onClick={stepOver} size="small"></Button>
-                  <Button pt={pt} icon={() => (isRun ? <VscDebugPause /> : <VscDebugStart />)} onClick={play} size="small"></Button>
+                  <Button pt={pt} icon={() => <VscDebugRestart />} onClick={() => setStatei(0)} size="small"></Button>
+                  <Button pt={pt} icon={() => <VscDebugStepBack />} onClick={() => setStatei(stepBack)} size="small"></Button>
+                  <Button pt={pt} icon={() => <VscDebugStepInto />} onClick={() => setStatei(stepInto)} size="small"></Button>
+                  <Button pt={pt} icon={() => <VscDebugStepOut />} onClick={() => setStatei(stepOut)} size="small"></Button>
+                  <Button pt={pt} icon={() => <VscDebugStepOver />} onClick={() => setStatei(stepOver)} size="small"></Button>
+                  <Button pt={pt} icon={() => (isRun ? <VscDebugPause /> : <VscDebugStart />)} onClick={playOut} size="small"></Button>
+                  <Button pt={pt} icon={() => (isRun ? <VscDebugPause /> : <VscRunAll />)} onClick={playOver} size="small"></Button>
                 </ButtonGroup>
               </div>
             </ClockUI>
