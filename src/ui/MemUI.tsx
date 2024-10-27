@@ -1,12 +1,10 @@
 import { Button } from "primereact/button";
 import { useMemo, useState } from "react";
-import { fprint, getBusColor } from "./utils";
+import { anim, fprint, getBusColor } from "./utils";
 import { ComputerState } from "../sim/Computer";
 import clsx from "clsx";
 import { isOn } from "../sim/Bits";
 import { CTRL } from "../sim/Controller";
-
-const anim = "transition-colors transition-duration-500";
 
 export const MemUI = ({ compState }: { compState: ComputerState }) => {
   const [format, setFormat] = useState<16 | 10>(16);

@@ -4,6 +4,7 @@ import { ComputerState } from "../sim/Computer";
 import clsx from "clsx";
 import { getTStates } from "../sim/InstructionRegister";
 import { useMemo } from "react";
+import { anim } from "./utils";
 
 const names = [
   "HLT",
@@ -53,7 +54,9 @@ export const CtrlUI = ({ compState }: { compState: ComputerState }) => {
           <div className="flex flex-column w-3rem bg-purple-100" key={`alu-${i}`}>
             <span>{i}</span>
             <span className="text-xs">{names[i]}</span>
-            <span className={getBit(compState.ctrl_word, i) ? "bg-purple-300" : "bg-purple-100"}>{getBit(compState.ctrl_word, i)}</span>
+            <span className={clsx("bg-purple-100", { "bg-purple-300": getBit(compState.ctrl_word, i) }, anim)}>
+              {getBit(compState.ctrl_word, i)}
+            </span>
           </div>
         ))}
       </div>
@@ -63,7 +66,9 @@ export const CtrlUI = ({ compState }: { compState: ComputerState }) => {
           <div className="flex flex-column w-3rem bg-blue-100" key={`reg-${i}`}>
             <span>{i}</span>
             <span className="text-xs">{names[i]}</span>
-            <span className={getBit(compState.ctrl_word, i) ? "bg-blue-300" : "bg-blue-100"}>{getBit(compState.ctrl_word, i)}</span>
+            <span className={clsx("bg-blue-100", { "bg-blue-300": getBit(compState.ctrl_word, i) }, anim)}>
+              {getBit(compState.ctrl_word, i)}
+            </span>
           </div>
         ))}
       </div>
@@ -73,7 +78,7 @@ export const CtrlUI = ({ compState }: { compState: ComputerState }) => {
           <div className="flex flex-column w-3rem bg-red-100" key={`mem-${i}`}>
             <span>{i}</span>
             <span className="text-xs">{names[i]}</span>
-            <span className={getBit(compState.ctrl_word, i) ? "bg-red-300" : "bg-red-100"}>{getBit(compState.ctrl_word, i)}</span>
+            <span className={clsx("bg-red-100", { "bg-red-300": getBit(compState.ctrl_word, i) }, anim)}>{getBit(compState.ctrl_word, i)}</span>
           </div>
         ))}
       </div>

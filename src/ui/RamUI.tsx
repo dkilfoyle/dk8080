@@ -38,7 +38,7 @@ export const RamUI = ({ compState }: { compState: ComputerState }) => {
               <span
                 className={clsx({
                   "bg-red-100": i * 16 + j == compState.mar,
-                  "border-1 border-primary": i * 16 + j == pc,
+                  outline: i * 16 + j == pc,
                 })}
                 key={`memcell-${i}-${j}`}>
                 {memslice[i * 16 + j]}

@@ -2,8 +2,34 @@ import { isOn } from "../sim/Bits";
 import { ComputerState } from "../sim/Computer";
 import { CTRL } from "../sim/Controller";
 
-export const fprint = (x: number, f: 10 | 16) => {
-  return f == 16 ? x.toString(f).padStart(2, "0") : x.toString(f).padStart(3, "0");
+export const anim = "transition-colors transition-duration-200";
+
+export const fprint = (x: number, f: number) => {
+  switch (f) {
+    case 2:
+      return x.toString(f).padStart(8, "0");
+    case 8:
+      return x.toString(f).padStart(3, "0");
+    case 10:
+      return x.toString(f).padStart(3, "0");
+    case 16:
+      return x.toString(f).padStart(2, "0").toUpperCase();
+    default:
+      throw Error("fprint invalid format");
+  }
+};
+
+export const getNextFormat = (f: number) => {
+  switch (f) {
+    case 8:
+      return 10;
+    case 10:
+      return 16;
+    case 16:
+      return 8;
+    default:
+      throw Error("fprint invalid format");
+  }
 };
 
 export const getValueBG = (s: ComputerState, oe: number, we: number, col: string) => {

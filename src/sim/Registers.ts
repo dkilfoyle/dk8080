@@ -1,7 +1,6 @@
 import { hi, isOn, lo } from "./Bits";
-import { Bus } from "./Bus";
-import { Clock } from "./Clock";
-import { Controller } from "./Controller";
+import { IClocked } from "./Clock";
+import { Computer } from "./Computer";
 
 enum REG8 {
   B = 0,
@@ -54,9 +53,66 @@ export enum REGEXT {
   INC2 = 0b11,
 }
 
-export class Registers {
+export class Registers implements IClocked {
   registers = new Uint8Array(12);
   out = 0;
+  reset() {
+    this.out = 0;
+    this.registers.fill(0);
+  }
+
+  posedge({ ctrl, bus }: Computer) {
+    if (ctrl.reg_ext > 0) {
+      this.ext(ctrl.reg_wr_sel, ctrl.reg_ext);
+    } else if (ctrl.reg_we) {
+      this.write(ctrl.reg_wr_sel, bus.value);
+    }
+  }
+  negedge(__: Computer) {}
+  always({ ctrl }: Computer) {
+    this.out = this.read(ctrl.reg_rd_sel);
+  }
+
+  read(rd_sel: number) {
+    const rd_ext = isOn(rd_sel, 4);
+    const rd_src = rd_sel & 0b1111;
+    return rd_ext ? ((this.registers[rd_src] << 8) | this.registers[rd_src + 1]) & 0xffff : this.registers[rd_src] & 0xffff;
+  }
+
+  write(wr_sel: REGSEL, data_in: number) {
+    const wr_ext = isOn(wr_sel, 4);
+    const wr_dst = wr_sel & 0b1111;
+    if (wr_ext) {
+      this.registers[wr_dst] = hi(data_in);
+      this.registers[wr_dst + 1] = lo(data_in);
+    } else this.registers[wr_dst] = data_in & 0xff;
+  }
+
+  ext(wr_sel: REGSEL, ext: REGEXT) {
+    if (wr_sel < 0b10000) throw Error(`register.ext invalid wr_sel ${wr_sel}`);
+    const extAdd = [0, 1, -1, 2][ext];
+
+    switch (wr_sel) {
+      case REGSEL.BC:
+        this.bc += extAdd;
+        break;
+      case REGSEL.DE:
+        this.de += extAdd;
+        break;
+      case REGSEL.HL:
+        this.hl += extAdd;
+        break;
+      case REGSEL.WZ:
+        this.wz += extAdd;
+        break;
+      case REGSEL.PC:
+        this.pc += extAdd;
+        break;
+      case REGSEL.SP:
+        this.sp += extAdd;
+        break;
+    }
+  }
 
   get b() {
     return this.registers[REG8.B];
@@ -135,65 +191,6 @@ export class Registers {
   set sp(x: number) {
     this.registers[REG16.SP] = hi(x);
     this.registers[REG16.SP + 1] = lo(x);
-  }
-
-  read(rd_sel: number) {
-    const rd_ext = isOn(rd_sel, 4);
-    const rd_src = rd_sel & 0b1111;
-    return rd_ext ? ((this.registers[rd_src] << 8) | this.registers[rd_src + 1]) & 0xffff : this.registers[rd_src] & 0xffff;
-  }
-
-  write(wr_sel: REGSEL, data_in: number) {
-    const wr_ext = isOn(wr_sel, 4);
-    const wr_dst = wr_sel & 0b1111;
-    if (wr_ext) {
-      this.registers[wr_dst] = hi(data_in);
-      this.registers[wr_dst + 1] = lo(data_in);
-    } else this.registers[wr_dst] = data_in & 0xff;
-  }
-
-  ext(wr_sel: REGSEL, ext: REGEXT) {
-    if (wr_sel < 0b10000) throw Error(`register.ext invalid wr_sel ${wr_sel}`);
-    const extAdd = [0, 1, -1, 2][ext];
-
-    switch (wr_sel) {
-      case REGSEL.BC:
-        this.bc += extAdd;
-        break;
-      case REGSEL.DE:
-        this.de += extAdd;
-        break;
-      case REGSEL.HL:
-        this.hl += extAdd;
-        break;
-      case REGSEL.WZ:
-        this.wz += extAdd;
-        break;
-      case REGSEL.PC:
-        this.pc += extAdd;
-        break;
-      case REGSEL.SP:
-        this.sp += extAdd;
-        break;
-    }
-  }
-
-  always(clk: Clock, rst: number, ctrl: Controller, bus: Bus) {
-    if (rst) {
-      this.registers.fill(0);
-    } else if (clk.isTick) {
-      if (ctrl.reg_ext > 0) {
-        // console.log("CTRL REG EXT", ctrl.reg_wr_sel, ctrl.reg_ext);
-        this.ext(ctrl.reg_wr_sel, ctrl.reg_ext);
-      } else if (ctrl.reg_we) {
-        this.write(ctrl.reg_wr_sel, bus.value);
-        // console.log(`regs.tick writing bus => reg(${ctrl.reg_wr_sel}) = ${bus.value}`);
-        // this.dump();
-      }
-    }
-    // tick or tock
-    this.out = this.read(ctrl.reg_rd_sel);
-    // console.log(`regs.* out = read(${ctrl.reg_rd_sel}) = ${this.out}`);
   }
 
   dump() {

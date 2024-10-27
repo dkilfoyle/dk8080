@@ -1,6 +1,5 @@
-import { Bus } from "./Bus";
-import { Clock } from "./Clock";
-import { Controller } from "./Controller";
+import { IClocked } from "./Clock";
+import { Computer } from "./Computer";
 
 export const getTStates = (ir: number) => {
   const ir8 = ir.toString(8).padStart(3, "0");
@@ -48,16 +47,18 @@ export const getTStates = (ir: number) => {
   }
 };
 
-export class InstructionRegister {
+export class InstructionRegister implements IClocked {
   out = 0;
-  always(clk: Clock, rst: number, ctrl: Controller, bus: Bus) {
-    if (rst) {
-      this.out = 0;
-    } else if (clk.isTick) {
-      if (ctrl.ir_we) {
-        this.out = bus.value;
-        console.log(`IR = 0o${this.out.toString(8).padStart(3, "0")} / 0x${this.out.toString(16).padStart(2, "0").toUpperCase()}`);
-      }
+
+  reset() {
+    this.out = 0;
+  }
+  posedge({ ctrl, bus }: Computer) {
+    if (ctrl.ir_we) {
+      this.out = bus.value;
+      console.log(`IR = 0o${this.out.toString(8).padStart(3, "0")} / 0x${this.out.toString(16).padStart(2, "0").toUpperCase()}`);
     }
   }
+  negedge(__: Computer) {}
+  always(__: Computer) {}
 }

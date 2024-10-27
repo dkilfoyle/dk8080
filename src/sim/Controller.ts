@@ -1,9 +1,8 @@
 import _ from "lodash";
-import { Alu } from "./Alu";
 import { getBit, getBits, isOn, setBits } from "./Bits";
-import { Clock } from "./Clock";
-import { InstructionRegister } from "./InstructionRegister";
+import { IClocked } from "./Clock";
 import { REGEXT, REGSEL } from "./Registers";
+import { Computer } from "./Computer";
 
 export enum CTRL {
   HLT = 31,
@@ -31,7 +30,7 @@ export enum CTRL {
   IR_WE = 0,
 }
 
-export class Controller {
+export class Controller implements IClocked {
   ctrl_word = 0;
   stage = 0;
   stage_rst = 0;
@@ -44,24 +43,18 @@ export class Controller {
   getControl(bits: number | number[]) {
     return getBits(this.ctrl_word, bits);
   }
+  reset() {
+    this.ctrl_word = 0;
+    this.stage = 0;
+    this.stage_rst = 0;
+    this.stage_max = 2;
+  }
+  posedge(__: Computer) {}
+  negedge(__: Computer) {
+    this.stage = this.stage_rst == 1 ? 0 : this.stage + 1;
+  }
 
-  always(clk: Clock, rst: number, ir: InstructionRegister, alu: Alu) {
-    // always @(negedge clk, posedge rst)
-    if (clk.isTock) {
-      if (rst) {
-        this.stage = 0;
-        this.stage_max = 2;
-      } else {
-        if (this.stage_rst) {
-          this.stage = 0;
-          this.stage_max = 2;
-        } else {
-          this.stage++;
-        }
-      }
-    }
-
-    // always @(*)
+  always({ alu, ir }: Computer) {
     this.ctrl_word = 0;
     this.stage_rst = 0;
     const ir8 = ir.out.toString(8).padStart(3, "0");
@@ -345,7 +338,7 @@ export class Controller {
         this.setControls("mar=reg", REGSEL.SP);
         break;
       case 11:
-        this.setControls("reg=mem", REGSEL.PCC); // save lo(PC) to stack
+        this.setControls("mem=reg", REGSEL.PCC); // save lo(PC) to stack
         break;
       case 12:
         this.setControls("sp--");
@@ -354,7 +347,7 @@ export class Controller {
         this.setControls("mar=reg", REGSEL.SP);
         break;
       case 14:
-        this.setControls("reg=mem", REGSEL.PCP); // save hi(PC) to stack
+        this.setControls("mem=reg", REGSEL.PCP); // save hi(PC) to stack
         break;
       case 15:
         this.setControls("bus=reg", REGSEL.WZ);
@@ -397,7 +390,7 @@ export class Controller {
     this.stage_max = 3;
     if (this.stage == 3) {
       this.setControls("pc++");
-      //this.setControl(CTRL.HLT); // out is combination of HLT and REG_EXT0
+      this.setControl(CTRL.HLT); // out is combination of HLT and REG_EXT0
       this.stage_rst = 1;
     } else throw Error();
   }
@@ -443,8 +436,8 @@ export class Controller {
     // Rs = 2:0
     switch (this.stage) {
       case 3:
-        this.setControls("bus=reg3", Rd);
-        this.setControls("reg3=bus", Rs);
+        this.setControls("bus=reg3", Rs);
+        this.setControls("reg3=bus", Rd);
         this.stage_rst = 1;
         break;
       default:

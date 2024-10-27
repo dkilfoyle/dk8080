@@ -1,6 +1,6 @@
 import { Button } from "primereact/button";
 import { useMemo, useState } from "react";
-import { fprint, getBusColor } from "./utils";
+import { fprint, getBusColor, getNextFormat } from "./utils";
 import { ComputerState } from "../sim/Computer";
 import clsx from "clsx";
 import { isOn } from "../sim/Bits";
@@ -234,10 +234,11 @@ const opcodes: Record<string, string> = {
   DA: "JC addr",
   "00": "NOP",
   "76": "HLT",
+  D3: "DISP",
 };
 
 export const IrUI = ({ compState }: { compState: ComputerState }) => {
-  const [format, setFormat] = useState<16 | 10>(16);
+  const [format, setFormat] = useState(16);
   const ctrl = useMemo(
     () => ({
       ir_we: isOn(compState.ctrl_word, CTRL.IR_WE),
@@ -247,7 +248,7 @@ export const IrUI = ({ compState }: { compState: ComputerState }) => {
   );
   return (
     <div className="flex flex-column bg-green-100 p-2 gap-3">
-      <Button label="IR" onClick={() => setFormat(format == 16 ? 10 : 16)} size="small"></Button>
+      <Button label="IR" onClick={() => setFormat((cur) => getNextFormat(cur))} size="small"></Button>
       <div className="flex flex-row gap-2">
         <div className="flex flex-column w-2rem text-left">
           <span>IR</span>

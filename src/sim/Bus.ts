@@ -1,12 +1,15 @@
-import { Alu } from "./Alu";
-import { Controller } from "./Controller";
-import { Memory } from "./Memory";
-import { Registers } from "./Registers";
+import { IClocked } from "./Clock";
+import { Computer } from "./Computer";
 
-export class Bus {
+export class Bus implements IClocked {
   value = 0;
 
-  always(ctrl: Controller, alu: Alu, mem: Memory, regs: Registers) {
+  reset() {
+    this.value = 0;
+  }
+  posedge(__: Computer) {}
+  negedge(__: Computer) {}
+  always({ ctrl, alu, mem, regs }: Computer) {
     // regardless of tick/tock
     this.value = 0;
     console.assert(ctrl.alu_oe + ctrl.mem_oe + ctrl.reg_oe + ctrl.alu_flags_oe <= 1);

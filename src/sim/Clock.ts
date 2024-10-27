@@ -1,4 +1,12 @@
+import { Computer } from "./Computer";
 import { Controller } from "./Controller";
+
+export interface IClocked {
+  posedge: (computer: Computer) => void;
+  negedge: (computer: Computer) => void;
+  always: (computer: Computer) => void;
+  reset: () => void;
+}
 
 export class Clock {
   // tick is .0
@@ -7,8 +15,8 @@ export class Clock {
   reset() {
     this.count = 0;
   }
-  always(ctrl: Controller) {
-    if (!ctrl.hlt) this.count += 0.5;
+  halftick(ctrl: Controller) {
+    if (!(ctrl.hlt && !ctrl.reg_ext)) this.count += 0.5;
     // console.log(`clk.* ${this.count} ${this.isTick ? "tick" : ""} ${this.isTock ? "tock" : ""}`);
   }
   get isTick() {
