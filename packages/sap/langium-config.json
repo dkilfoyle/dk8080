@@ -1,0 +1,15 @@
+{
+    "projectName": "Sap",
+    "languages": [{
+        "id": "sap",
+        "grammar": "src/language/sap.langium",
+        "fileExtensions": [".asm"],
+        "textMate": {
+            "out": "syntaxes/sap.tmLanguage.json"
+        },
+        "monarch": {
+            "out": "src/syntaxes/sap.monarch.ts"
+        }
+    }],
+    "out": "src/language/generated"
+}
