@@ -51,6 +51,8 @@ export class SapValidator {
     if (s.arg1?.number) {
       if (!eargs.arg1.argType.includes("imm"))
         return accept("error", `${s.instr} argument 1 expects ${eargs.arg1.argType}`, { node: s, property: "arg1" });
+      if ((eargs.arg1.argType == "imm8" && s.arg1.number > 0xff) || (eargs.arg1.argType == "imm16" && s.arg1.number > 0xffff))
+        return accept("error", `Argument 1 out of range for ${eargs.arg1.argType}`, { node: s, property: "arg1" });
     }
 
     if (s.arg2?.name) {
@@ -61,6 +63,8 @@ export class SapValidator {
     if (s.arg2?.number) {
       if (!eargs.arg2.argType.includes("imm"))
         return accept("error", `${s.instr} argument 2 expects ${eargs.arg2.argType}`, { node: s, property: "arg2" });
+      if ((eargs.arg2.argType == "imm8" && s.arg2.number > 0xff) || (eargs.arg2.argType == "imm16" && s.arg2.number > 0xffff))
+        return accept("error", `Argument 2 out of range for ${eargs.arg1.argType}`, { node: s, property: "arg2" });
     }
   }
 }
