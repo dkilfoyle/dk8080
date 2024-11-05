@@ -1,16 +1,8 @@
 import { AbstractSignatureHelpProvider } from "langium/lsp";
 import { SapServices } from "./sap-module.js";
 import { AstNode, LangiumDocument, MaybePromise, CstUtils, DocumentationProvider, CommentProvider } from "langium";
-import {
-  CancellationToken,
-  SignatureHelp,
-  SignatureHelpParams,
-  SignatureInformation,
-  ParameterInformation,
-  SignatureHelpOptions,
-} from "vscode-languageserver";
-import * as _ from "lodash";
-import { isStatement } from "./generated/ast.js";
+import { SignatureHelp, SignatureHelpParams, SignatureInformation, ParameterInformation, SignatureHelpOptions } from "vscode-languageserver";
+import { isInstruction, isStatement } from "./generated/ast.js";
 import { argsLookup, instrHelp } from "./opcodes.js";
 
 export class SapSignatureHelpProvider extends AbstractSignatureHelpProvider {
@@ -24,21 +16,21 @@ export class SapSignatureHelpProvider extends AbstractSignatureHelpProvider {
     this.commentProvider = services.documentation.CommentProvider;
   }
 
-  override provideSignatureHelp(
-    document: LangiumDocument,
-    params: SignatureHelpParams,
-    cancelToken = CancellationToken.None
-  ): MaybePromise<SignatureHelp | undefined> {
+  override provideSignatureHelp(document: LangiumDocument, params: SignatureHelpParams): MaybePromise<SignatureHelp | undefined> {
     const cst = document.parseResult.value.$cstNode;
     if (cst) {
       const curOffset = document.textDocument.offsetAt(params.position);
       const nodeBefore = CstUtils.findLeafNodeBeforeOffset(cst, curOffset)?.astNode;
+      console.log(nodeBefore);
       if (params.context?.triggerCharacter == "\n") {
         this.currentSignature = undefined;
         return undefined;
-      }
-      if (isStatement(nodeBefore)) {
-        const sig = this.getSignatureFromElement(nodeBefore, cancelToken);
+      } else if (params.context?.triggerCharacter == "," && isStatement(nodeBefore)) {
+        const paramNum = nodeBefore.$cstNode!.text.includes(",") ? 1 : 0;
+        this.currentSignature!.activeParameter = paramNum;
+        return this.currentSignature;
+      } else if (isInstruction(nodeBefore)) {
+        const sig = this.getSignatureFromElement(nodeBefore);
         return sig;
       } else return this.currentSignature;
     }
@@ -46,12 +38,11 @@ export class SapSignatureHelpProvider extends AbstractSignatureHelpProvider {
     return undefined;
   }
 
-  protected override getSignatureFromElement(element: AstNode, cancelToken: CancellationToken): MaybePromise<SignatureHelp | undefined> {
-    if (isStatement(element)) {
-      const paramNum = element.$cstNode!.text.includes(",") ? 1 : 0;
-      const op = argsLookup[element.instr.toUpperCase()];
+  protected override getSignatureFromElement(element: AstNode): MaybePromise<SignatureHelp | undefined> {
+    if (isInstruction(element)) {
+      const op = argsLookup[element.name.toUpperCase()];
       const args = [op.arg1.argType, op.arg2.argType].filter((x) => x != "");
-      let title = element.instr + " ";
+      let title = element.name + " ";
       const params = args.map((arg, i) => {
         const start = title.length;
         title += arg;
@@ -59,11 +50,12 @@ export class SapSignatureHelpProvider extends AbstractSignatureHelpProvider {
         if (i < args.length - 1) title += ", ";
         return ParameterInformation.create([start, end]);
       });
-      const sig = SignatureInformation.create(title, instrHelp[element.instr.toUpperCase()], ...params);
-      const siginfo = { signatures: [sig], activeParameter: paramNum, activeSignature: 0 };
+      const sig = SignatureInformation.create(title, instrHelp[element.name.toUpperCase()], ...params);
+      const siginfo = { signatures: [sig], activeParameter: 0, activeSignature: 0 };
       this.currentSignature = siginfo;
       return siginfo;
     }
+    return undefined;
   }
 
   override get signatureHelpOptions(): SignatureHelpOptions {

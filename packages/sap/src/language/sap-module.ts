@@ -10,6 +10,8 @@ import {
 import { SapGeneratedModule, SapGeneratedSharedModule } from "./generated/module.js";
 import { SapValidator, registerValidationChecks } from "./sap-validator.js";
 import { SapSignatureHelpProvider } from "./sap-signature.js";
+import { SapDocumentationProvider } from "./sap-documentation.js";
+import { SapHoverProvider } from "./sap-hover.js";
 
 /**
  * Declaration of custom services - add your own service classes here.
@@ -32,6 +34,7 @@ export type SapServices = LangiumServices & SapAddedServices;
  * selected services, while the custom services must be fully specified.
  */
 export const SapModule: Module<SapServices, PartialLangiumServices & SapAddedServices> = {
+  documentation: { DocumentationProvider: () => new SapDocumentationProvider() },
   validation: {
     SapValidator: () => new SapValidator(),
   },
@@ -39,7 +42,7 @@ export const SapModule: Module<SapServices, PartialLangiumServices & SapAddedSer
     // CompletionProvider: (services) => new SapCompletionProvider(services),
     SignatureHelp: (services) => new SapSignatureHelpProvider(services),
     // CodeActionProvider: (services) => new JackCodeActionProvider(),
-    // HoverProvider: (services) => new JackHoverProvider(services),
+    HoverProvider: (services) => new SapHoverProvider(services),
   },
 };
 

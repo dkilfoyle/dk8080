@@ -9,7 +9,10 @@ Line:
 Statement:
     instr=Instruction arg1=Argument? ("," arg2=Argument)?;
 
-Instruction returns string:
+Instruction:
+name = OpCode;
+
+OpCode returns string:
 "INR"|"inr"|
 "DCR"|"dcr"|
 "INX"|"inx"|

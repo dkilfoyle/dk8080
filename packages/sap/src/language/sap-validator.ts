@@ -30,7 +30,7 @@ const countArgs = (s: Statement) => {
  */
 export class SapValidator {
   checkValidStatement(s: Statement, accept: ValidationAcceptor): void {
-    const eargs = argsLookup[s.instr.toUpperCase()];
+    const eargs = argsLookup[s.instr.name?.toUpperCase()];
     if (!eargs) return accept("error", `Unknown instruction ${s.instr}`, { node: s, property: "instr" }); // this shouldn't happen
 
     // console.log(s);
@@ -38,9 +38,9 @@ export class SapValidator {
     const expectedNumArgs = Number(eargs.arg1.argType != "") + Number(eargs.arg2.argType != "");
     const gotNumArgs = countArgs(s);
     if (gotNumArgs != expectedNumArgs) {
-      if (gotNumArgs == 2) return accept("error", `${s.instr} expects ${expectedNumArgs} args`, { node: s, property: "arg2" });
-      if (gotNumArgs == 1) return accept("error", `${s.instr} expects ${expectedNumArgs} args`, { node: s, property: "arg1" });
-      if (gotNumArgs == 0) return accept("error", `${s.instr} expects ${expectedNumArgs} args`, { node: s });
+      if (gotNumArgs == 2) return accept("error", `${s.instr.name} expects ${expectedNumArgs} args`, { node: s, property: "arg2" });
+      if (gotNumArgs == 1) return accept("error", `${s.instr.name} expects ${expectedNumArgs} args`, { node: s, property: "arg1" });
+      if (gotNumArgs == 0) return accept("error", `${s.instr.name} expects ${expectedNumArgs} args`, { node: s });
     }
 
     if (s.arg1?.name) {
