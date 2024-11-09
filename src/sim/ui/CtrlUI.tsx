@@ -1,8 +1,8 @@
 import _ from "lodash";
-import { getBit } from "../sim/Bits";
-import { ComputerState } from "../sim/Computer";
+import { getBit } from "../emulator/Bits";
+import { ComputerState } from "../emulator/Computer";
 import clsx from "clsx";
-import { getTStates } from "../sim/InstructionRegister";
+import { getTStates } from "../emulator/InstructionRegister";
 import { useMemo } from "react";
 import { anim } from "./utils";
 

@@ -1,5 +1,5 @@
 import { Button } from "primereact/button";
-import { ComputerState } from "../sim/Computer";
+import { ComputerState } from "../emulator/Computer";
 import { PropsWithChildren } from "react";
 
 interface ClockProps {

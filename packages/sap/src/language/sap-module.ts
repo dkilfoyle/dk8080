@@ -12,6 +12,7 @@ import { SapValidator, registerValidationChecks } from "./sap-validator.js";
 import { SapSignatureHelpProvider } from "./sap-signature.js";
 import { SapDocumentationProvider } from "./sap-documentation.js";
 import { SapHoverProvider } from "./sap-hover.js";
+import { SapValueConverter } from "./sap-valueconverter.js";
 
 /**
  * Declaration of custom services - add your own service classes here.
@@ -43,6 +44,9 @@ export const SapModule: Module<SapServices, PartialLangiumServices & SapAddedSer
     SignatureHelp: (services) => new SapSignatureHelpProvider(services),
     // CodeActionProvider: (services) => new JackCodeActionProvider(),
     HoverProvider: (services) => new SapHoverProvider(services),
+  },
+  parser: {
+    ValueConverter: () => new SapValueConverter(),
   },
 };
 

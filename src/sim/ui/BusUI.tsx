@@ -1,10 +1,10 @@
 import { Button } from "primereact/button";
 import { useMemo, useState } from "react";
-import { anim, fprint, getBusColor } from "./utils";
-import { ComputerState } from "../sim/Computer";
-import { isOn } from "../sim/Bits";
+import { ComputerState } from "../emulator/Computer";
+import { isOn } from "../emulator/Bits";
 import clsx from "clsx";
-import { CTRL } from "../sim/Controller";
+import { CTRL } from "../emulator/Controller";
+import { getBusColor, anim, fprint } from "./utils";
 
 export const BusUI = ({ compState }: { compState: ComputerState }) => {
   const [format, setFormat] = useState<16 | 10>(16);

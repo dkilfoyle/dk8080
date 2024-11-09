@@ -49,7 +49,7 @@ export class Alu implements IClocked {
     this.tmp = 0;
   }
 
-  posedge({ ctrl, rst, bus }: Computer) {
+  posedge({ ctrl, bus }: Computer) {
     console.assert(ctrl.alu_a_we + ctrl.alu_a_restore + ctrl.alu_cs <= 1, "%o", {
       ctrl,
       msg: `Alu.always cant have more than 1 of we, restore or cs`,

@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import _ from "lodash";
 import { fprint } from "./utils";
-import { ComputerState } from "../sim/Computer";
+import { ComputerState } from "../emulator/Computer";
 import clsx from "clsx";
 
 export const RamUI = ({ compState }: { compState: ComputerState }) => {

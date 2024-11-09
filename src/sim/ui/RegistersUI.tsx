@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import { anim, fprint, getBusColor } from "./utils";
 import { Button } from "primereact/button";
-import { getBits, isOn } from "../sim/Bits";
-import { ComputerState } from "../sim/Computer";
+import { getBits, isOn } from "../emulator/Bits";
+import { ComputerState } from "../emulator/Computer";
 import clsx from "clsx";
-import { CTRL } from "../sim/Controller";
+import { CTRL } from "../emulator/Controller";
 
 const regnames: Record<number, string> = {
   0b00000: "B",

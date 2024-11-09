@@ -1,6 +1,6 @@
-import { isOn } from "../sim/Bits";
-import { ComputerState } from "../sim/Computer";
-import { CTRL } from "../sim/Controller";
+import { isOn } from "../emulator/Bits";
+import { ComputerState } from "../emulator/Computer";
+import { CTRL } from "../emulator/Controller";
 
 export const anim = "transition-colors transition-duration-200";
 

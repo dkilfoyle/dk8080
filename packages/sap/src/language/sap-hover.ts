@@ -1,7 +1,7 @@
 import { AstNode, DocumentationProvider, LangiumDocument, MaybePromise } from "langium";
 import { Hover, HoverParams } from "vscode-languageclient";
 import { AstNodeHoverProvider, LangiumServices } from "langium/lsp";
-import { isInstruction } from "./generated/ast.js";
+import { isInstruction, isOperation } from "./generated/ast.js";
 import { CstUtils } from "langium";
 
 export class SapHoverProvider extends AstNodeHoverProvider {
@@ -29,7 +29,7 @@ export class SapHoverProvider extends AstNodeHoverProvider {
   }
 
   protected getAstNodeHoverContent(node: AstNode): Hover | undefined {
-    if (isInstruction(node)) {
+    if (isOperation(node)) {
       const docInfo = this.documentationProvider.getDocumentation(node);
 
       let hover = `${node.name.toUpperCase()}`;

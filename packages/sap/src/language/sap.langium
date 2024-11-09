@@ -4,15 +4,14 @@ entry Program:
     lines+=Line*;
 
 Line:
-    Label? Statement?;
-
-Statement:
-    instr=Instruction arg1=Argument? ("," arg2=Argument)?;
+    Label | Instruction;
 
 Instruction:
-name = OpCode;
+    op=Operation arg1=Argument? ("," arg2=Argument)?;
 
-OpCode returns string:
+Operation: name=Op;
+
+Op returns string:
 "INR"|"inr"|
 "DCR"|"dcr"|
 "INX"|"inx"|

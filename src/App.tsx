@@ -1,32 +1,16 @@
 import "./App.css";
 import "../node_modules/primeflex/primeflex.css";
 import "../node_modules/primeflex/themes/primeone-light.css";
-import { useInterval } from "primereact/hooks";
 import { PrimeReactProvider } from "primereact/api";
-import { Computer } from "./sim/Computer";
-import { RegistersUI } from "./ui/RegistersUI";
-import { AluUI } from "./ui/AluUI";
-import { useMemo, useState } from "react";
-import { BusUI } from "./ui/BusUI";
-import { RamUI } from "./ui/RamUI";
-import { MemUI } from "./ui/MemUI";
-import { IrUI } from "./ui/IrUI";
-import { CtrlUI } from "./ui/CtrlUI";
-import { ClockUI } from "./ui/ClockUI";
-import { DisplayUI } from "./ui/DisplayUI";
-import { Button } from "primereact/button";
-import { ButtonGroup } from "primereact/buttongroup";
-import {
-  VscDebugRestart,
-  VscDebugStepBack,
-  VscDebugStepInto,
-  VscDebugStepOut,
-  VscDebugStepOver,
-  VscDebugStart,
-  VscDebugPause,
-  VscDebugAll,
-  VscRunAll,
-} from "react-icons/vsc";
+import { Allotment } from "allotment";
+import { ComputerUI } from "./sim/ui/ComputerUI";
+import { useRef, useEffect } from "react";
+
+import { setupConfigClassic } from "../packages/sap/src/setupClassic";
+import { MonacoEditorLanguageClientWrapper } from "monaco-editor-wrapper";
+import { configureMonacoWorkers } from "../packages/sap/src/setupCommon";
+
+import "allotment/dist/style.css";
 
 const prog = [
   // lxi sp, $f0
@@ -93,88 +77,26 @@ const prog = [
   0x76,
 ];
 
-const pt = { root: { style: { padding: "0.3em 0.6em" } } };
-
 function App() {
-  const [statei, setStatei] = useState(0);
-  const [isRun, setIsRun] = useState(false);
-  const [runSpeed, setRunSpeed] = useState(200);
-  const [runSteppingMode, setRunSteppingMode] = useState(0);
-
-  const comp = useMemo(() => {
-    const comp = new Computer(prog);
-    comp.run();
-    return comp;
+  const monacoWrapperRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const executeClassic = async (htmlElement: HTMLElement) => {
+      const userConfig = setupConfigClassic();
+      const wrapper = new MonacoEditorLanguageClientWrapper();
+      await wrapper.initAndStart(userConfig, htmlElement);
+    };
+    if (monacoWrapperRef.current) {
+      configureMonacoWorkers();
+      executeClassic(monacoWrapperRef.current);
+    }
   }, []);
-
-  const curState = useMemo(() => {
-    return comp.states[statei];
-  }, [comp.states, statei]);
-
-  const stepBack = (cur: number) => {
-    for (let i = cur - 1; i > 0; i--) {
-      if (comp.states[i].stage == 3 && comp.states[i].clkState == "tock") return i;
-    }
-    return cur;
-  };
-  const stepInto = (cur: number) => Math.max(cur - 1, 0);
-  const stepOut = (cur: number) => Math.min(cur + 1, comp.states.length - 1);
-  const stepOver = (cur: number) => {
-    for (let i = cur + 1; i < comp.states.length - 1; i++) {
-      if (comp.states[i].stage == 3 && comp.states[i].clkState == "tock") return i;
-    }
-    return cur;
-  };
-  const playOut = () => {
-    setRunSteppingMode(0);
-    setIsRun((cur) => !cur);
-  };
-  const playOver = () => {
-    setRunSteppingMode(1);
-    setIsRun((cur) => !cur);
-  };
-
-  useInterval(
-    () => {
-      setStatei((cur) => (runSteppingMode == 0 ? stepOut(cur) : stepOver(cur)));
-    },
-    runSpeed,
-    isRun
-  );
 
   return (
     <PrimeReactProvider>
-      <div className="flex flex-column gap-3 align-items-center">
-        <div className="flex gap-3">
-          <div className="flex flex-column gap-3">
-            <MemUI compState={curState}></MemUI>
-            <IrUI compState={curState}></IrUI>
-            <ClockUI compState={curState}>
-              <div className="flex flex-row gap-1">
-                <ButtonGroup style={{ backgroundColor: "#f9f9f9" }}>
-                  <Button pt={pt} icon={() => <VscDebugRestart />} onClick={() => setStatei(0)} size="small"></Button>
-                  <Button pt={pt} icon={() => <VscDebugStepBack />} onClick={() => setStatei(stepBack)} size="small"></Button>
-                  <Button pt={pt} icon={() => <VscDebugStepInto />} onClick={() => setStatei(stepInto)} size="small"></Button>
-                  <Button pt={pt} icon={() => <VscDebugStepOut />} onClick={() => setStatei(stepOut)} size="small"></Button>
-                  <Button pt={pt} icon={() => <VscDebugStepOver />} onClick={() => setStatei(stepOver)} size="small"></Button>
-                  <Button pt={pt} icon={() => (isRun ? <VscDebugPause /> : <VscDebugStart />)} onClick={playOut} size="small"></Button>
-                  <Button pt={pt} icon={() => (isRun ? <VscDebugPause /> : <VscRunAll />)} onClick={playOver} size="small"></Button>
-                </ButtonGroup>
-              </div>
-            </ClockUI>
-          </div>
-          <div className="flex flex-column gap-3">
-            <BusUI compState={curState}></BusUI>
-            <DisplayUI compState={curState}></DisplayUI>
-          </div>
-          <div className="flex flex-column gap-3">
-            <AluUI compState={curState}></AluUI>
-            <RegistersUI compState={curState}></RegistersUI>
-          </div>
-        </div>
-        <CtrlUI compState={curState}></CtrlUI>
-        <RamUI compState={curState}></RamUI>
-      </div>
+      <Allotment>
+        <div ref={monacoWrapperRef} id="monacoWrapper" className="bg-primary h-full w-full"></div>
+        <ComputerUI></ComputerUI>
+      </Allotment>
     </PrimeReactProvider>
   );
 }

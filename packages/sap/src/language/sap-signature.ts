@@ -2,7 +2,7 @@ import { AbstractSignatureHelpProvider } from "langium/lsp";
 import { SapServices } from "./sap-module.js";
 import { AstNode, LangiumDocument, MaybePromise, CstUtils, DocumentationProvider, CommentProvider } from "langium";
 import { SignatureHelp, SignatureHelpParams, SignatureInformation, ParameterInformation, SignatureHelpOptions } from "vscode-languageserver";
-import { isInstruction, isStatement } from "./generated/ast.js";
+import { isInstruction, isOperation } from "./generated/ast.js";
 import { argsLookup, instrHelp } from "./opcodes.js";
 
 export class SapSignatureHelpProvider extends AbstractSignatureHelpProvider {
@@ -25,11 +25,11 @@ export class SapSignatureHelpProvider extends AbstractSignatureHelpProvider {
       if (params.context?.triggerCharacter == "\n") {
         this.currentSignature = undefined;
         return undefined;
-      } else if (params.context?.triggerCharacter == "," && isStatement(nodeBefore)) {
+      } else if (params.context?.triggerCharacter == "," && isInstruction(nodeBefore)) {
         const paramNum = nodeBefore.$cstNode!.text.includes(",") ? 1 : 0;
         this.currentSignature!.activeParameter = paramNum;
         return this.currentSignature;
-      } else if (isInstruction(nodeBefore)) {
+      } else if (isOperation(nodeBefore)) {
         const sig = this.getSignatureFromElement(nodeBefore);
         return sig;
       } else return this.currentSignature;
@@ -39,7 +39,7 @@ export class SapSignatureHelpProvider extends AbstractSignatureHelpProvider {
   }
 
   protected override getSignatureFromElement(element: AstNode): MaybePromise<SignatureHelp | undefined> {
-    if (isInstruction(element)) {
+    if (isOperation(element)) {
       const op = argsLookup[element.name.toUpperCase()];
       const args = [op.arg1.argType, op.arg2.argType].filter((x) => x != "");
       let title = element.name + " ";

@@ -7,7 +7,7 @@ mvi a, 1
 mvi b, 0
 
 loop:
-out
+out 0
 mov c, a
 mov a, b
 cpi 1
@@ -24,7 +24,7 @@ jmp loop
 
 rotate_left:
 ral
-cpi 80
+cpi 80h
 cz set_right
 jmp loop
 

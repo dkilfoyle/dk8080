@@ -1,4 +1,15 @@
-export const opcodes = {
+export interface IInstruction {
+  instr: string;
+  code: number;
+  arg1: string;
+  arg2: string;
+  bytes: number;
+  flags: string;
+  stages: number;
+  help: string;
+}
+
+export const opcodes: Record<string, IInstruction> = {
   "0x3c": { instr: "INR", code: 0x3c, arg1: "A", arg2: "", bytes: 1, flags: "SZP-", stages: 4, help: "A = A + 1" },
   "0x04": { instr: "INR", code: 0x04, arg1: "B", arg2: "", bytes: 1, flags: "SZP-", stages: 6, help: "B = B + 1" },
   "0x0c": { instr: "INR", code: 0x0c, arg1: "C", arg2: "", bytes: 1, flags: "SZP-", stages: 6, help: "C = C + 1" },
@@ -262,7 +273,7 @@ export const opcodes = {
   "0xda": { instr: "JC", code: 0xda, arg1: "addr", arg2: "", bytes: 3, flags: "----", stages: 9, help: "Jump to addr if FlagC == 1" },
   "0x00": { instr: "NOP", code: 0x00, arg1: "", arg2: "", bytes: 1, flags: "----", stages: 4, help: "Do nothing" },
   "0x76": { instr: "HLT", code: 0x76, arg1: "", arg2: "", bytes: 1, flags: "----", stages: 4, help: "Halt execution" },
-  "0xd3": { instr: "OUT", code: 0xd3, arg1: "", arg2: "", bytes: 1, flags: "----", stages: 4, help: "Out" },
+  "0xd3": { instr: "OUT", code: 0xd3, arg1: "imm8", arg2: "", bytes: 2, flags: "----", stages: 4, help: "Out" },
 };
 
 export const instrHelp: Record<string, string> = {
